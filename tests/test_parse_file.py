@@ -176,6 +176,7 @@ class TestParseAllTestData(unittest.TestCase):
         try:
             # Use parse_directory with limited points for faster testing
             import time
+
             start_time = time.time()
             results = parse_directory(self.test_data_dir)
             end_time = time.time()
@@ -206,7 +207,7 @@ class TestParseAllTestData(unittest.TestCase):
             self.fail(f"Failed to parse directory: {str(e)}")
 
         # Summary analysis
-        print(f"\n" + "=" * 80)
+        print("\n" + "=" * 80)
         print("SUMMARY ANALYSIS")
         print("=" * 80)
         print(f"Total slices processed: {len(results)}")
