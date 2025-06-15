@@ -47,7 +47,7 @@ def main():
     
     for cmd, description in checks:
         passed = run_command(cmd, description)
-        if not passed and "Critical" in description:
+        if not passed and ("Critical" in description or "Formatting" in description):
             all_passed = False
     
     print(f"\n{'='*50}")
