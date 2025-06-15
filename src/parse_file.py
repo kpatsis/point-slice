@@ -62,38 +62,6 @@ def detect_slice_type_from_data(
         return SliceType.UNKNOWN
 
 
-def determine_color_from_slice_type(slice_type: SliceType, filename: str) -> int:
-    """
-    Determine color based on slice type and filename patterns.
-
-    Args:
-        slice_type: The detected slice type
-        filename: Name of the file for additional pattern matching
-
-    Returns:
-        DXF color index
-    """
-    filename_upper = filename.upper()
-
-    # Primary color mapping based on slice type (same as point_slice_studio.py)
-    if slice_type == SliceType.YZ:
-        return 1  # Red for YZ slices
-    elif slice_type == SliceType.XZ:
-        return 6  # Magenta for XZ slices
-    elif slice_type == SliceType.XY:
-        # For XY slices, check for height-based patterns in filename
-        if "_H" in filename_upper:
-            return 4  # Cyan for High
-        elif "_M" in filename_upper:
-            return 3  # Green for Medium
-        elif "_L" in filename_upper:
-            return 2  # Yellow for Low
-        else:
-            return 5  # Blue for XY slices without height designation
-
-    return 7  # Default white for UNKNOWN
-
-
 def parse_csv_file(filepath: str, max_points: Optional[int] = None) -> PointsSlice:
     """
     Parse a space-separated CSV file containing 3D point coordinates.
@@ -161,9 +129,8 @@ def parse_csv_file(filepath: str, max_points: Optional[int] = None) -> PointsSli
 
     # Determine metadata
     slice_type = detect_slice_type_from_data(points)
-    color = determine_color_from_slice_type(slice_type, filename)
 
-    return PointsSlice(points=points, name=name, color=color, slice_type=slice_type)
+    return PointsSlice(points=points, name=name, slice_type=slice_type)
 
 
 def parse_directory(

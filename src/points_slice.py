@@ -34,5 +34,4 @@ class PointsSlice:
 
     points: List[Point3D]
     name: str
-    color: int  # DXF color index
     slice_type: SliceType
