@@ -18,8 +18,8 @@ import unittest  # noqa: E402
 
 from parse_file import (  # noqa: E402
     detect_slice_type_from_data,
-    determine_color_from_slice_type,
     parse_csv_file,
+    parse_directory,
 )
 from points_slice import Point3D, SliceType, PointsSlice  # noqa: E402
 
@@ -85,44 +85,6 @@ class TestDetectSliceType(unittest.TestCase):
         self.assertEqual(result_loose, SliceType.XY)
 
 
-class TestDetermineColor(unittest.TestCase):
-    """Test the determine_color_from_slice_type function."""
-
-    def test_yz_slice_color(self):
-        """Test color assignment for YZ slices."""
-        color = determine_color_from_slice_type(SliceType.YZ, "test.csv")
-        self.assertEqual(color, 1)  # Red
-
-    def test_xz_slice_color(self):
-        """Test color assignment for XZ slices."""
-        color = determine_color_from_slice_type(SliceType.XZ, "test.csv")
-        self.assertEqual(color, 6)  # Magenta
-
-    def test_xy_slice_with_height_patterns(self):
-        """Test XY slice color assignment with height patterns."""
-        # High pattern
-        color_h = determine_color_from_slice_type(SliceType.XY, "test_H.csv")
-        self.assertEqual(color_h, 4)  # Cyan
-
-        # Medium pattern
-        color_m = determine_color_from_slice_type(SliceType.XY, "test_M.csv")
-        self.assertEqual(color_m, 3)  # Green
-
-        # Low pattern
-        color_l = determine_color_from_slice_type(SliceType.XY, "test_L.csv")
-        self.assertEqual(color_l, 2)  # Yellow
-
-    def test_xy_slice_without_height_pattern(self):
-        """Test XY slice color assignment without height patterns."""
-        color = determine_color_from_slice_type(SliceType.XY, "test.csv")
-        self.assertEqual(color, 5)  # Blue
-
-    def test_unknown_slice_color(self):
-        """Test color assignment for UNKNOWN slices."""
-        color = determine_color_from_slice_type(SliceType.UNKNOWN, "test.csv")
-        self.assertEqual(color, 7)  # White
-
-
 class TestParseCSVFile(unittest.TestCase):
     """Test the parse_csv_file function."""
 
@@ -150,7 +112,6 @@ class TestParseCSVFile(unittest.TestCase):
         self.assertEqual(result.name, "test_data")
         self.assertEqual(len(result.points), 100)  # 10x10 grid
         self.assertEqual(result.slice_type, SliceType.XY)
-        self.assertEqual(result.color, 5)  # Blue for XY without height pattern
 
     def test_parse_with_max_points(self):
         """Test parsing with max_points limit."""
@@ -191,6 +152,82 @@ class TestParseCSVFile(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             parse_csv_file(invalid_file)
+
+
+class TestParseAllTestData(unittest.TestCase):
+    """Test parsing all CSV files in the testdata/02_csv directory using parse_directory."""
+
+    def setUp(self):
+        """Set up paths for test data."""
+        self.test_data_dir = os.path.join(
+            os.path.dirname(__file__), "testdata", "02_csv"
+        )
+        self.assertTrue(
+            os.path.exists(self.test_data_dir),
+            f"Test data directory not found: {self.test_data_dir}",
+        )
+
+    def test_parse_directory_all_files(self):
+        """Parse all CSV files using parse_directory function and analyze results."""
+        print("\n" + "=" * 80)
+        print("PARSING ALL TEST DATA FILES WITH parse_directory()")
+        print("=" * 80)
+
+        try:
+            # Use parse_directory with limited points for faster testing
+            import time
+
+            start_time = time.time()
+            results = parse_directory(self.test_data_dir)
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"⏱️  Parsing execution time: {execution_time:.4f} seconds")
+
+            print(f"✅ Successfully parsed directory: {self.test_data_dir}")
+            print(f"📊 Total slices parsed: {len(results)}")
+
+            # Verify we have results
+            self.assertGreater(len(results), 0, "No slices were parsed from directory")
+
+            # Analyze each slice
+            for i, slice_obj in enumerate(results, 1):
+                print(f"\n📁 Slice {i}: {slice_obj.name}")
+                print(f"   📊 Points parsed: {len(slice_obj.points)}")
+                print(f"   🎯 Slice type: {slice_obj.slice_type.value}")
+
+                # Validate that each slice is a PointsSlice object
+                self.assertIsInstance(
+                    slice_obj, PointsSlice, f"Result {i} is not a PointsSlice object"
+                )
+                self.assertGreater(
+                    len(slice_obj.points), 0, f"Slice {slice_obj.name} has no points"
+                )
+
+        except Exception as e:
+            self.fail(f"Failed to parse directory: {str(e)}")
+
+        # Summary analysis
+        print("\n" + "=" * 80)
+        print("SUMMARY ANALYSIS")
+        print("=" * 80)
+        print(f"Total slices processed: {len(results)}")
+
+        self.assertEqual(len(results), 10, f"Expected 6 files, got {len(results)}")
+
+    def test_directory_error_handling(self):
+        """Test error handling for parse_directory function."""
+        # Test non-existent directory
+        with self.assertRaises(FileNotFoundError):
+            parse_directory("non_existent_directory")
+
+        # Test empty directory (create temporary empty directory)
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaises(ValueError):
+                parse_directory(temp_dir)
+
+        print("✅ Directory error handling tests passed!")
 
 
 if __name__ == "__main__":
