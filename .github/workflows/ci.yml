@@ -27,17 +27,6 @@ jobs:
     - name: Run unit tests
       run: |
         python run_tests.py
-    
-    - name: Test individual modules
-      run: |
-        python tests/test_parse_file.py
-    
-    - name: Upload test results
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-results
-        path: test-results/
 
   lint:
     runs-on: ubuntu-latest
