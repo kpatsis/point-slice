@@ -162,3 +162,5 @@ temp/
 .Spotlight-V100
 .Trashes
 ehthumbs.db 
+
+tests/testdata

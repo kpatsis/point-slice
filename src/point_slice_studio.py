@@ -1,13 +1,11 @@
-
 # point_slice_studio_v7.py
 # Τελική έκδοση με layer coloring, legend text και σωστή διαχείριση offsets & blocks
 
 import ezdxf
 import os
 import random
-import re
 from ezdxf.entities import Point
-from collections import defaultdict
+from points_slice import Point3D, PointsSlice, SliceType
 
 def ask_user_input():
     folder = input("📂 Drag and drop τον φάκελο με τα DXF slices και πάτα Enter: ").strip('"')
