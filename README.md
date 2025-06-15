@@ -78,5 +78,5 @@ The project includes comprehensive unit tests (24 tests) covering:
 Automated testing runs on:
 - Push to main/master branch
 - Pull requests
-- Multiple Python versions (3.8-3.11)
-- Multiple operating systems (Ubuntu, Windows)
+- Ubuntu latest with Python 3.11
+- Includes code quality checks (formatting, linting)
