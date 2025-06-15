@@ -13,6 +13,7 @@ from enum import Enum
 @dataclass
 class Point3D:
     """Represents a 3D point with x, y, z coordinates."""
+
     x: float
     y: float
     z: float
@@ -20,8 +21,9 @@ class Point3D:
 
 class SliceType(Enum):
     """Enumeration for different slice types."""
+
     XY = "XY"
-    XZ = "XZ" 
+    XZ = "XZ"
     YZ = "YZ"
     UNKNOWN = "UNKNOWN"
 
@@ -29,8 +31,8 @@ class SliceType(Enum):
 @dataclass
 class PointsSlice:
     """Represents a collection of 3D points with associated metadata."""
+
     points: List[Point3D]
     name: str
     color: int  # DXF color index
     slice_type: SliceType
-    

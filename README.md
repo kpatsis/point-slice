@@ -4,6 +4,64 @@
 
 A Python library for parsing and analyzing 3D point cloud data from space-separated CSV files and DXF files.
 
+## Setup
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip (Python package installer)
+- Git (for cloning the repository)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd point_slice
+   ```
+
+2. **Create a virtual environment:**
+   ```bash
+   # Create virtual environment
+   python -m venv venv
+   ```
+
+3. **Activate the virtual environment:**
+
+   **On Windows:**
+   ```powershell
+   # PowerShell
+   .\venv\Scripts\Activate.ps1
+   
+   # Command Prompt
+   .\venv\Scripts\activate.bat
+   ```
+
+
+4. **Install main dependencies:**
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+5. **Install development dependencies (optional):**
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+6. **Verify installation:**
+   ```bash
+   python run_tests.py
+   ```
+
+### Deactivating the Environment
+
+When you're done working:
+
+```bash
+deactivate
+```
+
 ## Features
 
 - **Data-based slice type detection**: Automatically determines if points form XY, XZ, YZ, or unknown slice patterns
@@ -58,10 +116,47 @@ python run_tests.py
 python tests/test_parse_file.py
 ```
 
-## Dependencies
+## Code Quality
 
-- Python 3.8+
-- ezdxf >= 1.0.0
+### Local Formatting and Linting
+
+Install development dependencies:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+### Format Code with Black
+
+```bash
+# Auto-format code
+black src/ tests/
+```
+
+### Run All Quality Checks
+
+Use the provided script to run the same checks as CI:
+
+```bash
+python lint.py
+```
+
+This will:
+- ✅ Check code formatting (Black)
+- ✅ Check for critical linting issues (flake8)
+- ✅ Show style warnings
+- ✅ Report if code is ready to push
+
+### Pre-commit Workflow
+
+Before committing changes:
+
+```bash
+1. python lint.py        # Check code quality
+2. black src/ tests/     # Fix formatting if needed  
+3. python run_tests.py   # Run tests
+4. git add & commit      # Push with confidence!
+```
 
 ## Development
 
