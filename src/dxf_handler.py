@@ -8,7 +8,7 @@ as blocks with customizable colors and layers.
 import ezdxf
 from typing import Optional, Union
 from pathlib import Path
-from points_slice import PointsSlice, Point3D
+from points_slice import PointsSlice
 
 
 def add_points_slice_to_dxf(
@@ -80,10 +80,7 @@ def add_points_slice_to_dxf(
 
         text_entity = block.add_text(
             label_text,
-            dxfattribs={
-                "height": 0.5,
-                "layer": layer_name
-            },
+            dxfattribs={"height": 0.5, "layer": layer_name},
         )
         text_entity.set_placement(text_position)
 
