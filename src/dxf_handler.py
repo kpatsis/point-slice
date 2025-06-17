@@ -17,8 +17,7 @@ def add_points_slice_to_dxf(
     layer_name: Optional[str] = None,
     block_name: Optional[str] = None,
     insert_position: tuple[float, float, float] = (0.0, 0.0, 0.0),
-    add_text_label: bool = True,
-    text_offset: tuple[float, float] = (0.0, 5.0),
+    text_position: tuple[float, float] = None,
 ) -> ezdxf.document.Drawing:
     """
     Add a PointsSlice object to a DXF file as a single block.
@@ -64,18 +63,15 @@ def add_points_slice_to_dxf(
         block.add_point((point.x, point.y, point.z), dxfattribs={"layer": layer_name})
 
     # Add text label if requested
-    if add_text_label and points_slice.points:
+    if text_position:
         first_point = points_slice.points[0]
         text_position = (
-            first_point.x + text_offset[0],
-            first_point.y + text_offset[1],
+            text_position[0],
+            text_position[1],
             first_point.z,
         )
 
-        # Calculate average Z coordinate for the label
-        avg_z = sum(p.z for p in points_slice.points) / len(points_slice.points)
-
-        label_text = f"{points_slice.name} | Type: {points_slice.slice_type.value} | Points: {len(points_slice.points)} | Avg Z: {avg_z:.2f}"
+        label_text = f"{points_slice.name}"
 
         text_entity = block.add_text(
             label_text,
