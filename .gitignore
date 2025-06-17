@@ -163,3 +163,4 @@ temp/
 .Trashes
 ehthumbs.db 
 
+tests/testdata/03_csv_original/
