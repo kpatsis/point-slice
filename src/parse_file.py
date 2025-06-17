@@ -161,9 +161,6 @@ def parse_directory(
     if not csv_files:
         raise ValueError(f"No CSV files found in directory: {directory_path}")
 
-    # Sort files for consistent processing order
-    csv_files.sort()
-
     for filename in csv_files:
         filepath = os.path.join(directory_path, filename)
         try:
