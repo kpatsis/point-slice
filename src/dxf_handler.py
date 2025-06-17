@@ -62,7 +62,7 @@ def add_points_slice_to_dxf(
 
     # Add all points to the block
     for point in points_slice.points:
-        block.add_point((point.x, point.y, point.z))
+        block.add_point((point.x, point.y, point.z), dxfattribs={"layer": layer_name})
 
     # Add text label if requested
     if add_text_label and points_slice.points:
@@ -82,8 +82,7 @@ def add_points_slice_to_dxf(
             label_text,
             dxfattribs={
                 "height": 0.5,
-                "layer": layer_name,
-                "color": color,
+                "layer": layer_name
             },
         )
         text_entity.set_placement(text_position)
