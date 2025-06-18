@@ -61,12 +61,11 @@ class DXFDocument:
             layer_name = block.layer_name or block.points_slice.name
             block_name = block.block_name or block.points_slice.name
 
-            # Get color in round-robin fashion
-            color = self.colors[self.color_index % len(self.colors)]
-            self.color_index += 1
-
             # Create the layer if it doesn't exist
             if layer_name not in self.dxf_doc.layers:
+                # Get color in round-robin fashion only when creating a new layer
+                color = self.colors[self.color_index % len(self.colors)]
+                self.color_index += 1
                 self.dxf_doc.layers.add(layer_name, color=color)
 
             # Create a new block definition

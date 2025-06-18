@@ -77,6 +77,6 @@ def rotate_slice_to_xy(slice_obj: PointsSlice) -> PointsSlice:
 
     return PointsSlice(
         points=rotated_points,
-        name=f"{slice_obj.name}_rotated_to_XY",
+        name=f"{slice_obj.name}_rotated",
         slice_type=SliceType.XY,
     )
