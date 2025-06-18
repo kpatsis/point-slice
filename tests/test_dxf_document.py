@@ -19,7 +19,7 @@ class TestDXFDocument(unittest.TestCase):
     def setUp(self):
         """Set up test environment."""
         self.test_data_dir = os.path.join(
-            os.path.dirname(__file__), "testdata", "03_csv_original_reduced"
+            os.path.dirname(__file__), "testdata", "02_csv"
         )
         self.output_file = "test_output.dxf"
 
