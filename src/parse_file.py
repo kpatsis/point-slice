@@ -157,6 +157,7 @@ def parse_directory(
 
     slices: List[PointsSlice] = []
     csv_files = [f for f in os.listdir(directory_path) if f.lower().endswith(".csv")]
+    csv_files.sort()  # Sort filenames for consistent processing order
 
     if not csv_files:
         raise ValueError(f"No CSV files found in directory: {directory_path}")
