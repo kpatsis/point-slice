@@ -3,8 +3,6 @@
 import os
 import sys
 
-from points_slice import SliceType, rotate_slice_to_xy
-
 # Add the src directory to the path for imports - must be before other imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -12,6 +10,7 @@ import unittest  # noqa: E402
 
 from dxf_document import DXFDocument, Block  # noqa: E402
 from parse_file import parse_directory  # noqa: E402
+from points_slice import SliceType, rotate_slice_to_xy  # noqa: E402
 
 
 class TestDXFDocument(unittest.TestCase):
