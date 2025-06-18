@@ -17,7 +17,7 @@ A Python library for parsing and analyzing 3D point cloud data from space-separa
 1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd point_slice
+   cd point-slice
    ```
 
 2. **Create a virtual environment:**
