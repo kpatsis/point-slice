@@ -20,7 +20,7 @@ class TestDXFDocument(unittest.TestCase):
     def setUp(self):
         """Set up test environment."""
         self.test_data_dir = os.path.join(
-            os.path.dirname(__file__), "testdata", "03_csv_original"
+            os.path.dirname(__file__), "testdata", "02_csv"
         )
         self.output_file = "test_output.dxf"
 
@@ -45,14 +45,14 @@ class TestDXFDocument(unittest.TestCase):
 
         # Step 3: Add each PointsSlice as a block
         for points_slice in points_slices:
-            if (points_slice.slice_type == SliceType.XZ):
+            if points_slice.slice_type == SliceType.XZ:
                 block = Block(
                     points_slice=rotate_slice_to_xy(points_slice),
                     layer_name=f"Layer_{points_slice.name}",
                     block_name=f"Block_{points_slice.name}",
                     insert_position=(100.0, 0.0, 0.0),
                 )
-            elif (points_slice.slice_type == SliceType.YZ):
+            elif points_slice.slice_type == SliceType.YZ:
                 block = Block(
                     points_slice=rotate_slice_to_xy(points_slice),
                     layer_name=f"Layer_{points_slice.name}",

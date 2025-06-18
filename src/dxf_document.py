@@ -96,11 +96,7 @@ class DXFDocument:
             label_position = (self.label_start_position[0], self.current_label_y, 0.0)
 
             text_entity = dxf_block.add_text(
-                label_text,
-                dxfattribs={
-                    "height": self.text_height,
-                    "layer": layer_name
-                }
+                label_text, dxfattribs={"height": self.text_height, "layer": layer_name}
             )
             text_entity.set_placement(label_position)
 
