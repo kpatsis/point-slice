@@ -1,8 +1,19 @@
 # Point Slice Parser
 
-[![Tests](https://github.com/YOUR_USERNAME/point_slice/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/point_slice/actions/workflows/ci.yml)
+[![Tests](https://github.com/kpatsis/point_slice/actions/workflows/ci.yml/badge.svg)](https://github.com/kpatsis/point_slice/actions/workflows/ci.yml)
 
 A Python library for parsing and analyzing 3D point cloud data from space-separated CSV files and DXF files.
+
+## Features
+
+- **DXF creation tool**: Ready-to-use script (`create_dxf.py`) for converting CSV point clouds to DXF format
+- **Data-based slice type detection**: Automatically determines if points form XY, XZ, YZ, or unknown slice patterns
+- **Smart positioning**: Automatically positions different slice types at appropriate coordinates
+- **Configurable thresholds**: Customizable precision for slice detection
+- **Random sampling**: Efficient analysis of large datasets using representative samples
+- **Color assignment**: Automatic color coding based on slice type and filename patterns
+- **Batch processing**: Parse entire directories of CSV files
+- **Command-line interface**: User-friendly CLI with comprehensive options and help
 
 ## Setup
 
@@ -37,7 +48,6 @@ A Python library for parsing and analyzing 3D point cloud data from space-separa
    .\venv\Scripts\activate.bat
    ```
 
-
 4. **Install main dependencies:**
    ```bash
    pip install --upgrade pip
@@ -62,18 +72,24 @@ When you're done working:
 deactivate
 ```
 
-## Features
-
-- **DXF creation tool**: Ready-to-use script (`create_dxf.py`) for converting CSV point clouds to DXF format
-- **Data-based slice type detection**: Automatically determines if points form XY, XZ, YZ, or unknown slice patterns
-- **Smart positioning**: Automatically positions different slice types at appropriate coordinates
-- **Configurable thresholds**: Customizable precision for slice detection
-- **Random sampling**: Efficient analysis of large datasets using representative samples
-- **Color assignment**: Automatic color coding based on slice type and filename patterns
-- **Batch processing**: Parse entire directories of CSV files
-- **Command-line interface**: User-friendly CLI with comprehensive options and help
 
 ## Quick Start
+
+### Prepare working directory
+
+Provided that the installation described above has been performed, you can perform the following steps to get the environment ready to execute the script:
+
+1. Open the Terminal
+
+2. Execute
+
+```bash
+cd ~\point-slice
+git pull
+.\venv\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ### Creating DXF Files (Recommended)
 
@@ -90,15 +106,6 @@ python create_dxf.py path/to/csv/files output.dxf --colors 1 2 3 4 5 --label-x -
 python create_dxf.py --help
 ```
 
-## Input File Format
-
-The parser expects space-separated CSV files with X, Y, Z coordinates in the first three columns:
-
-```
-1.35350752 7.82825232 2.91184616 56.000000 0 201 54
-1.35905170 7.82504892 2.91284609 49.000000 0 201 54
-1.31357431 7.81813622 2.92184615 50.000000 0 201 54
-```
 
 ## DXF Creation Tool
 
@@ -160,6 +167,16 @@ The script generates:
 - Progress reporting during execution
 - Summary with file statistics
 - File size and location information
+
+## Input File Format
+
+The parser expects space-separated CSV files with X, Y, Z coordinates in the first three columns:
+
+```
+1.35350752 7.82825232 2.91184616 56.000000 0 201 54
+1.35905170 7.82504892 2.91284609 49.000000 0 201 54
+1.31357431 7.81813622 2.92184615 50.000000 0 201 54
+```
 
 ## Slice Type Detection
 
