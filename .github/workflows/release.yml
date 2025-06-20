@@ -65,21 +65,21 @@ jobs:
         
     - name: Create README for installer
       run: |
-        echo DXF Creator - Windows Installer > installer\README.txt
-        echo. >> installer\README.txt
-        echo This installer contains the DXF Creator application for Windows. >> installer\README.txt
-        echo. >> installer\README.txt
-        echo Installation Instructions: >> installer\README.txt
-        echo 1. Run install.bat as Administrator >> installer\README.txt
-        echo 2. The application will be installed to your user directory >> installer\README.txt
-        echo 3. A desktop shortcut will be created >> installer\README.txt
-        echo. >> installer\README.txt
-        echo Uninstallation: >> installer\README.txt
-        echo - Run uninstall.bat to remove the application >> installer\README.txt
-        echo. >> installer\README.txt
-        echo About: >> installer\README.txt
-        echo A Python application for converting CSV point cloud data to DXF files. >> installer\README.txt
-        echo Provides both command-line and GUI interfaces. >> installer\README.txt
+        echo "DXF Creator - Windows Installer" > installer\README.txt
+        Add-Content installer\README.txt ""
+        Add-Content installer\README.txt "This installer contains the DXF Creator application for Windows."
+        Add-Content installer\README.txt ""
+        Add-Content installer\README.txt "Installation Instructions:"
+        Add-Content installer\README.txt "1. Run install.bat as Administrator"
+        Add-Content installer\README.txt "2. The application will be installed to your user directory"
+        Add-Content installer\README.txt "3. A desktop shortcut will be created"
+        Add-Content installer\README.txt ""
+        Add-Content installer\README.txt "Uninstallation:"
+        Add-Content installer\README.txt "- Run uninstall.bat to remove the application"
+        Add-Content installer\README.txt ""
+        Add-Content installer\README.txt "About:"
+        Add-Content installer\README.txt "A Python application for converting CSV point cloud data to DXF files."
+        Add-Content installer\README.txt "Provides both command-line and GUI interfaces."
         
     - name: Create ZIP installer package
       run: |
