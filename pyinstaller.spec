@@ -58,7 +58,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # Add an icon file path here if you have one
+    icon='point_slice_studio.ico',  # Add an icon file path here if you have one
 )
 
 coll = COLLECT(
