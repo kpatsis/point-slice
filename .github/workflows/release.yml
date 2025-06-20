@@ -85,7 +85,8 @@ jobs:
         
     - name: Create ZIP installer package
       run: |
-        Compress-Archive -Path installer\* -DestinationPath DXF_Creator_Windows_Installer.zip
+        cd installer
+        Compress-Archive -Path * -DestinationPath ..\DXF_Creator_Windows_Installer.zip
         
     - name: Get release info
       id: release_info
