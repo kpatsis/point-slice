@@ -37,7 +37,12 @@ jobs:
     - name: Create installer directory structure
       run: |
         mkdir installer
-        xcopy /E /I dist\DXF_Creator installer\DXF_Creator
+        Move-Item -Path "dist\DXF_Creator" -Destination "installer\DXF_Creator"
+        
+    - name: Debug - Show directory structure
+      run: |
+        echo "=== Contents of installer directory ==="
+        Get-ChildItem -Path installer -Recurse | Select-Object FullName
         
     - name: Create simple batch installer
       shell: cmd 
@@ -84,9 +89,10 @@ jobs:
         Add-Content installer\README.txt "Provides both command-line and GUI interfaces."
         
     - name: Create ZIP installer package
+      shell: cmd
       run: |
         cd installer
-        Compress-Archive -Path * -DestinationPath ..\DXF_Creator_Windows_Installer.zip
+        tar -a -c -f ..\DXF_Creator_Windows_Installer.zip *
         
     - name: Get release info
       id: release_info
