@@ -103,7 +103,7 @@ jobs:
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DXF_Creator_Windows_Installer
+        name: DXF_Creator_Windows_Installer_${{ steps.release_info.outputs.tag }}
         path: ${{ steps.release_info.outputs.filename }}
         retention-days: 90
         
