@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.12'
         
     - name: Install dependencies
       run: |
@@ -37,29 +37,36 @@ jobs:
     - name: Create installer directory structure
       run: |
         mkdir installer
-        xcopy /E /I dist\DXF_Creator installer\DXF_Creator
+        Move-Item -Path "dist\DXF_Creator" -Destination "installer\DXF_Creator"
+        
+    - name: Debug - Show directory structure
+      run: |
+        echo "=== Contents of installer directory ==="
+        Get-ChildItem -Path installer -Recurse | Select-Object FullName
         
     - name: Create simple batch installer
+      shell: cmd 
       run: |
         echo @echo off > installer\install.bat
         echo echo Installing DXF Creator... >> installer\install.bat
-        echo if not exist "%USERPROFILE%\DXF_Creator" mkdir "%USERPROFILE%\DXF_Creator" >> installer\install.bat
-        echo xcopy /E /I /Y "DXF_Creator" "%USERPROFILE%\DXF_Creator" >> installer\install.bat
+        echo if not exist "%%USERPROFILE%%\DXF_Creator" mkdir "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
+        echo xcopy /E /I /Y "DXF_Creator" "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Creating desktop shortcut... >> installer\install.bat
-        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DXF Creator.lnk'); $Shortcut.TargetPath = '%USERPROFILE%\DXF_Creator\DXF_Creator.exe'; $Shortcut.Save()" >> installer\install.bat
+        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%%USERPROFILE%%\Desktop\DXF Creator.lnk'); $Shortcut.TargetPath = '%%USERPROFILE%%\DXF_Creator\DXF_Creator.exe'; $Shortcut.Save()" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Installation complete! >> installer\install.bat
-        echo echo DXF Creator has been installed to: %USERPROFILE%\DXF_Creator >> installer\install.bat
+        echo echo DXF Creator has been installed to: %%USERPROFILE%%\DXF_Creator >> installer\install.bat
         echo echo A desktop shortcut has been created. >> installer\install.bat
         echo pause >> installer\install.bat
         
     - name: Create uninstaller
+      shell: cmd
       run: |
         echo @echo off > installer\uninstall.bat
         echo echo Uninstalling DXF Creator... >> installer\uninstall.bat
-        echo if exist "%USERPROFILE%\DXF_Creator" rmdir /S /Q "%USERPROFILE%\DXF_Creator" >> installer\uninstall.bat
-        echo if exist "%USERPROFILE%\Desktop\DXF Creator.lnk" del "%USERPROFILE%\Desktop\DXF Creator.lnk" >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\DXF_Creator" rmdir /S /Q "%%USERPROFILE%%\DXF_Creator" >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\Desktop\DXF Creator.lnk" del "%%USERPROFILE%%\Desktop\DXF Creator.lnk" >> installer\uninstall.bat
         echo echo DXF Creator has been uninstalled. >> installer\uninstall.bat
         echo pause >> installer\uninstall.bat
         
@@ -81,10 +88,6 @@ jobs:
         Add-Content installer\README.txt "A Python application for converting CSV point cloud data to DXF files."
         Add-Content installer\README.txt "Provides both command-line and GUI interfaces."
         
-    - name: Create ZIP installer package
-      run: |
-        Compress-Archive -Path installer\* -DestinationPath DXF_Creator_Windows_Installer.zip
-        
     - name: Get release info
       id: release_info
       run: |
@@ -96,16 +99,19 @@ jobs:
         echo "tag=$tag" >> $env:GITHUB_OUTPUT
         echo "filename=DXF_Creator_Windows_Installer_$tag.zip" >> $env:GITHUB_OUTPUT
         
-    - name: Rename installer with version
-      run: |
-        mv DXF_Creator_Windows_Installer.zip ${{ steps.release_info.outputs.filename }}
-        
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DXF_Creator_Windows_Installer
-        path: ${{ steps.release_info.outputs.filename }}
+        name: DXF_Creator_Windows_Installer_${{ steps.release_info.outputs.tag }}
+        path: installer/
         retention-days: 90
+        
+    - name: Create ZIP for release (if release event)
+      if: github.event_name == 'release'
+      shell: cmd
+      run: |
+        cd installer
+        tar -a -c -f ..\${{ steps.release_info.outputs.filename }} *
         
     - name: Upload installer to release (if release event)
       if: github.event_name == 'release'
