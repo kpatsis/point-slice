@@ -39,7 +39,7 @@ jobs:
     - name: Create installer directory structure
       run: |
         mkdir installer
-        Move-Item -Path "dist\DXF_Creator" -Destination "installer\DXF_Creator"
+        Move-Item -Path "dist\Point_Slice_Studio" -Destination "installer\Point_Slice_Studio"
         
     - name: Debug - Show directory structure
       run: |
@@ -50,15 +50,15 @@ jobs:
       shell: cmd 
       run: |
         echo @echo off > installer\install.bat
-        echo echo Installing DXF Creator... >> installer\install.bat
-        echo if not exist "%%USERPROFILE%%\DXF_Creator" mkdir "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
-        echo xcopy /E /I /Y "DXF_Creator" "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
+        echo echo Installing Point Slice Studio... >> installer\install.bat
+        echo if not exist "%%USERPROFILE%%\Point_Slice_Studio" mkdir "%%USERPROFILE%%\Point_Slice_Studio" >> installer\install.bat
+        echo xcopy /E /I /Y "Point_Slice_Studio" "%%USERPROFILE%%\Point_Slice_Studio" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Creating desktop shortcut... >> installer\install.bat
-        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%%USERPROFILE%%\Desktop\DXF Creator.lnk'); $Shortcut.TargetPath = '%%USERPROFILE%%\DXF_Creator\DXF_Creator.exe'; $Shortcut.Save()" >> installer\install.bat
+        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%%USERPROFILE%%\Desktop\Point Slice Studio.lnk'); $Shortcut.TargetPath = '%%USERPROFILE%%\Point_Slice_Studio\Point_Slice_Studio.exe'; $Shortcut.Save()" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Installation complete! >> installer\install.bat
-        echo echo DXF Creator has been installed to: %%USERPROFILE%%\DXF_Creator >> installer\install.bat
+        echo echo Point Slice Studio has been installed to: %%USERPROFILE%%\Point_Slice_Studio >> installer\install.bat
         echo echo A desktop shortcut has been created. >> installer\install.bat
         echo pause >> installer\install.bat
         
@@ -66,17 +66,17 @@ jobs:
       shell: cmd
       run: |
         echo @echo off > installer\uninstall.bat
-        echo echo Uninstalling DXF Creator... >> installer\uninstall.bat
-        echo if exist "%%USERPROFILE%%\DXF_Creator" rmdir /S /Q "%%USERPROFILE%%\DXF_Creator" >> installer\uninstall.bat
-        echo if exist "%%USERPROFILE%%\Desktop\DXF Creator.lnk" del "%%USERPROFILE%%\Desktop\DXF Creator.lnk" >> installer\uninstall.bat
-        echo echo DXF Creator has been uninstalled. >> installer\uninstall.bat
+        echo echo Uninstalling Point Slice Studio... >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\Point_Slice_Studio" rmdir /S /Q "%%USERPROFILE%%\Point_Slice_Studio" >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\Desktop\Point Slice Studio.lnk" del "%%USERPROFILE%%\Desktop\Point Slice Studio.lnk" >> installer\uninstall.bat
+        echo echo Point Slice Studio has been uninstalled. >> installer\uninstall.bat
         echo pause >> installer\uninstall.bat
         
     - name: Create README for installer
       run: |
-        echo "DXF Creator - Windows Installer" > installer\README.txt
+        echo "Point Slice Studio - Windows Installer" > installer\README.txt
         Add-Content installer\README.txt ""
-        Add-Content installer\README.txt "This installer contains the DXF Creator application for Windows."
+        Add-Content installer\README.txt "This installer contains the Point Slice Studio application for Windows."
         Add-Content installer\README.txt ""
         Add-Content installer\README.txt "Installation Instructions:"
         Add-Content installer\README.txt "1. Run install.bat as Administrator"
@@ -99,12 +99,12 @@ jobs:
           $tag = "manual-build-$(Get-Date -Format 'yyyy-MM-dd-HH-mm')"
         }
         echo "tag=$tag" >> $env:GITHUB_OUTPUT
-        echo "filename=DXF_Creator_Windows_Installer_$tag.zip" >> $env:GITHUB_OUTPUT
+        echo "filename=Point_Slice_Studio_Windows_Installer_$tag.zip" >> $env:GITHUB_OUTPUT
         
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: DXF_Creator_Windows_Installer_${{ steps.release_info.outputs.tag }}
+        name: Point_Slice_Studio_Windows_Installer_${{ steps.release_info.outputs.tag }}
         path: installer/
         retention-days: 90
         

@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
 
+# Point Slice Studio - Convert CSV point cloud data to DXF format
+# Copyright (C) 2024 [Your Name]
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
-DXF Document Creator
+Point Slice Studio CLI
 
 This script creates DXF files from CSV point cloud data. It parses CSV files
 containing 3D point coordinates and converts them into DXF format with
 proper layers, colors, and block organization.
 
 Usage:
-    python create_dxf.py [input_directory] [output_file]
+    python point_slice_studio_cli.py [input_directory] [output_file]
 
 If no arguments are provided, defaults to:
     - Input directory: tests/testdata/02_csv
@@ -181,9 +197,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python create_dxf.py                                    # Use defaults
-    python create_dxf.py data/csv_files output.dxf         # Custom paths
-    python create_dxf.py /path/to/csv/files result.dxf     # Absolute paths
+    python point_slice_studio_cli.py                                    # Use defaults
+    python point_slice_studio_cli.py data/csv_files output.dxf         # Custom paths
+    python point_slice_studio_cli.py /path/to/csv/files result.dxf     # Absolute paths
         """
     )
     

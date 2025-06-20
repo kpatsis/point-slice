@@ -10,7 +10,7 @@ project_root = Path.cwd()
 block_cipher = None
 
 a = Analysis(
-    ['create_dxf_gui.py'],
+    ['point_slice_studio_gui.py'],
     pathex=[str(project_root)],
     binaries=[],
     datas=[
@@ -48,7 +48,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='DXF_Creator',
+    name='Point_Slice_Studio',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -69,5 +69,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='DXF_Creator',
+    name='Point_Slice_Studio',
 ) 
