@@ -88,12 +88,6 @@ jobs:
         Add-Content installer\README.txt "A Python application for converting CSV point cloud data to DXF files."
         Add-Content installer\README.txt "Provides both command-line and GUI interfaces."
         
-    - name: Create ZIP installer package
-      shell: cmd
-      run: |
-        cd installer
-        tar -a -c -f ..\DXF_Creator_Windows_Installer.zip *
-        
     - name: Get release info
       id: release_info
       run: |
@@ -105,16 +99,19 @@ jobs:
         echo "tag=$tag" >> $env:GITHUB_OUTPUT
         echo "filename=DXF_Creator_Windows_Installer_$tag.zip" >> $env:GITHUB_OUTPUT
         
-    - name: Rename installer with version
-      run: |
-        mv DXF_Creator_Windows_Installer.zip ${{ steps.release_info.outputs.filename }}
-        
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v4
       with:
         name: DXF_Creator_Windows_Installer_${{ steps.release_info.outputs.tag }}
-        path: ${{ steps.release_info.outputs.filename }}
+        path: installer/
         retention-days: 90
+        
+    - name: Create ZIP for release (if release event)
+      if: github.event_name == 'release'
+      shell: cmd
+      run: |
+        cd installer
+        tar -a -c -f ..\${{ steps.release_info.outputs.filename }} *
         
     - name: Upload installer to release (if release event)
       if: github.event_name == 'release'
