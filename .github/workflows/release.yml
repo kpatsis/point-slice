@@ -40,26 +40,28 @@ jobs:
         xcopy /E /I dist\DXF_Creator installer\DXF_Creator
         
     - name: Create simple batch installer
+      shell: cmd 
       run: |
         echo @echo off > installer\install.bat
         echo echo Installing DXF Creator... >> installer\install.bat
-        echo if not exist "%USERPROFILE%\DXF_Creator" mkdir "%USERPROFILE%\DXF_Creator" >> installer\install.bat
-        echo xcopy /E /I /Y "DXF_Creator" "%USERPROFILE%\DXF_Creator" >> installer\install.bat
+        echo if not exist "%%USERPROFILE%%\DXF_Creator" mkdir "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
+        echo xcopy /E /I /Y "DXF_Creator" "%%USERPROFILE%%\DXF_Creator" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Creating desktop shortcut... >> installer\install.bat
-        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%USERPROFILE%\Desktop\DXF Creator.lnk'); $Shortcut.TargetPath = '%USERPROFILE%\DXF_Creator\DXF_Creator.exe'; $Shortcut.Save()" >> installer\install.bat
+        echo powershell "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%%USERPROFILE%%\Desktop\DXF Creator.lnk'); $Shortcut.TargetPath = '%%USERPROFILE%%\DXF_Creator\DXF_Creator.exe'; $Shortcut.Save()" >> installer\install.bat
         echo echo. >> installer\install.bat
         echo echo Installation complete! >> installer\install.bat
-        echo echo DXF Creator has been installed to: %USERPROFILE%\DXF_Creator >> installer\install.bat
+        echo echo DXF Creator has been installed to: %%USERPROFILE%%\DXF_Creator >> installer\install.bat
         echo echo A desktop shortcut has been created. >> installer\install.bat
         echo pause >> installer\install.bat
         
     - name: Create uninstaller
+      shell: cmd
       run: |
         echo @echo off > installer\uninstall.bat
         echo echo Uninstalling DXF Creator... >> installer\uninstall.bat
-        echo if exist "%USERPROFILE%\DXF_Creator" rmdir /S /Q "%USERPROFILE%\DXF_Creator" >> installer\uninstall.bat
-        echo if exist "%USERPROFILE%\Desktop\DXF Creator.lnk" del "%USERPROFILE%\Desktop\DXF Creator.lnk" >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\DXF_Creator" rmdir /S /Q "%%USERPROFILE%%\DXF_Creator" >> installer\uninstall.bat
+        echo if exist "%%USERPROFILE%%\Desktop\DXF Creator.lnk" del "%%USERPROFILE%%\Desktop\DXF Creator.lnk" >> installer\uninstall.bat
         echo echo DXF Creator has been uninstalled. >> installer\uninstall.bat
         echo pause >> installer\uninstall.bat
         
