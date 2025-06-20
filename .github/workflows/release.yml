@@ -99,7 +99,7 @@ jobs:
         mv DXF_Creator_Windows_Installer.zip ${{ steps.release_info.outputs.filename }}
         
     - name: Upload installer as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: DXF_Creator_Windows_Installer
         path: ${{ steps.release_info.outputs.filename }}
