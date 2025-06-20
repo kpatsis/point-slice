@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-DXF Document Creator - GUI Version
+Point Slice Studio - GUI Version
 
 A graphical user interface for creating DXF files from CSV point cloud data.
 Provides the same functionality as the command line version with an intuitive GUI.
@@ -20,7 +20,7 @@ import contextlib
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 # Import the main functionality
-from create_dxf import create_dxf_from_csv_directory
+from point_slice_studio_cli import create_dxf_from_csv_directory
 
 
 class RedirectText:
@@ -38,12 +38,12 @@ class RedirectText:
         pass
 
 
-class DXFCreatorGUI:
+class PointSliceStudioGUI:
     """Main GUI application for DXF creation."""
     
     def __init__(self, root):
         self.root = root
-        self.root.title("DXF Document Creator")
+        self.root.title("Point Slice Studio")
         self.root.geometry("800x700")
         self.root.minsize(700, 600)
         
@@ -85,7 +85,7 @@ class DXFCreatorGUI:
         # Title
         title_label = ttk.Label(
             main_frame, 
-            text="DXF Document Creator", 
+            text="Point Slice Studio", 
             font=("TkDefaultFont", 16, "bold")
         )
         title_label.grid(row=row, column=0, columnspan=3, pady=(0, 20))
@@ -334,7 +334,7 @@ def main():
     elif "clam" in available_themes:
         style.theme_use("clam")
     
-    app = DXFCreatorGUI(root)
+    app = PointSliceStudioGUI(root)
     
     try:
         root.mainloop()

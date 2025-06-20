@@ -6,7 +6,7 @@ A Python library for parsing and analyzing 3D point cloud data from space-separa
 
 ## Features
 
-- **DXF creation tool**: Ready-to-use script (`create_dxf.py`) for converting CSV point clouds to DXF format
+- **DXF creation tool**: Ready-to-use script (`point_slice_studio_cli.py`) for converting CSV point clouds to DXF format
 - **Data-based slice type detection**: Automatically determines if points form XY, XZ, YZ, or unknown slice patterns
 - **Smart positioning**: Automatically positions different slice types at appropriate coordinates
 - **Configurable thresholds**: Customizable precision for slice detection
@@ -91,30 +91,80 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Creating DXF Files (Recommended)
+### Creating DXF Files (GUI - Recommended)
+
+Use the graphical interface for an intuitive experience:
+
+```bash
+# Launch the GUI application
+python point_slice_studio_gui.py
+```
+
+The **Point Slice Studio** GUI provides:
+- Easy directory and file selection with browse buttons
+- Visual input validation and error reporting
+- Real-time progress logging
+- Interactive configuration of colors and label positioning
+- No command-line knowledge required
+
+### Creating DXF Files (Command Line)
 
 Use the provided script to convert CSV point cloud data to DXF format:
 
 ```bash
 # Specify input directory and output file
-python create_dxf.py path/to/csv/files output.dxf
+python point_slice_studio_cli.py path/to/csv/files output.dxf
 
 # Customize colors and label positioning
-python create_dxf.py path/to/csv/files output.dxf --colors 1 2 3 4 5 --label-x -50.0 --label-y 10.0 
+python point_slice_studio_cli.py path/to/csv/files output.dxf --colors 1 2 3 4 5 --label-x -50.0 --label-y 10.0 
 
 # Get help
-python create_dxf.py --help
+python point_slice_studio_cli.py --help
 ```
 
 
-## DXF Creation Tool
+## Point Slice Studio (GUI Application)
 
-The `create_dxf.py` script provides a complete workflow for converting CSV point cloud data into DXF files with proper layers, colors, and organization.
+**Point Slice Studio** is a user-friendly graphical interface for converting CSV point cloud data into DXF files. It provides the same powerful functionality as the command-line tool with an intuitive visual interface.
+
+### Features
+
+- **Easy file management**: Browse buttons for selecting input directories and output files
+- **Visual validation**: Real-time input validation with clear error messages
+- **Progress monitoring**: Live progress log showing processing status
+- **Interactive configuration**: Visual controls for colors and label positioning
+- **Modern interface**: Clean, responsive design with proper error handling
+- **No command-line required**: Perfect for users who prefer graphical interfaces
 
 ### Usage
 
 ```bash
-python create_dxf.py [input_directory] [output_file] [options]
+# Launch Point Slice Studio
+python point_slice_studio_gui.py
+```
+
+### Building Executable
+
+Create a standalone executable using PyInstaller:
+
+```bash
+# Install PyInstaller
+pip install pyinstaller
+
+# Build executable
+pyinstaller pyinstaller.spec
+
+# The executable will be in dist/Point_Slice_Studio/
+```
+
+## DXF Creation Tool (Command Line)
+
+The `point_slice_studio_cli.py` script provides a complete workflow for converting CSV point cloud data into DXF files with proper layers, colors, and organization.
+
+### Usage
+
+```bash
+python point_slice_studio_cli.py [input_directory] [output_file] [options]
 ```
 
 ### Arguments
@@ -148,16 +198,16 @@ python create_dxf.py [input_directory] [output_file] [options]
 
 ```bash
 # Process default test data
-python create_dxf.py
+python point_slice_studio_cli.py
 
 # Process custom directory
-python create_dxf.py data/measurements/ engineering_drawing.dxf
+python point_slice_studio_cli.py data/measurements/ engineering_drawing.dxf
 
 # Use custom colors (red, green, blue, cyan)
-python create_dxf.py --colors 1 3 5 4
+python point_slice_studio_cli.py --colors 1 3 5 4
 
 # Position labels at custom location
-python create_dxf.py --label-x -100 --label-y 50
+python point_slice_studio_cli.py --label-x -100 --label-y 50
 ```
 
 ### Output
