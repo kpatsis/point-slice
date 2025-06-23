@@ -63,6 +63,14 @@ class PointSliceStudioGUI:
         self.root.geometry("800x700")
         self.root.minsize(700, 600)
         
+        # Set the window icon using the same icon as the application
+        try:
+            icon_path = os.path.join(os.path.dirname(__file__), "point_slice_studio.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+        except Exception:
+            pass  # If it fails, use the default system icon
+        
         # Variables for form inputs
         self.input_directory = tk.StringVar(value="tests/testdata/02_csv")
         self.output_file = tk.StringVar(value="output.dxf")
