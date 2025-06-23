@@ -65,7 +65,15 @@ class PointSliceStudioGUI:
         
         # Set the window icon using the same icon as the application
         try:
-            icon_path = os.path.join(os.path.dirname(__file__), "point_slice_studio.ico")
+            # Handle both development and packaged application scenarios
+            if getattr(sys, 'frozen', False):
+                # Running as packaged application
+                application_path = os.path.dirname(sys.executable)
+                icon_path = os.path.join(application_path, "point_slice_studio.ico")
+            else:
+                # Running as script
+                icon_path = os.path.join(os.path.dirname(__file__), "point_slice_studio.ico")
+            
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
         except Exception:
