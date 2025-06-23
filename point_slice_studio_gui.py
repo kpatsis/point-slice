@@ -67,8 +67,8 @@ class PointSliceStudioGUI:
         try:
             # Handle both development and packaged application scenarios
             if getattr(sys, 'frozen', False):
-                # Running as packaged application
-                application_path = os.path.dirname(sys.executable)
+                # Running as packaged application - use PyInstaller's temp directory
+                application_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
                 icon_path = os.path.join(application_path, "point_slice_studio.ico")
             else:
                 # Running as script
