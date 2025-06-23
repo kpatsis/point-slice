@@ -16,6 +16,7 @@ a = Analysis(
     datas=[
         ('src', 'src'),  # Include the src directory
         ('tests/testdata', 'tests/testdata'),  # Include test data
+        ('point_slice_studio.ico', '.'),  # Include icon file for window icon
         ('README.md', '.'),
         ('requirements.txt', '.'),
     ],
