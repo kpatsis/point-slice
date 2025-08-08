@@ -46,10 +46,11 @@ from points_slice import SliceType, rotate_slice_to_xy  # noqa: E402
 
 
 def create_dxf_from_csv_directory(
-    input_directory: str, 
+    input_directory: str,
     output_file: str,
     colors: List[int] = None,
-    label_position: tuple[float, float] = None
+    label_position: tuple[float, float] = None,
+    threshold: float = 0.050,
 ) -> None:
     """
     Create a DXF file from CSV files in a directory.
@@ -80,7 +81,7 @@ def create_dxf_from_csv_directory(
     print(f"📂 Parsing CSV files from: {input_directory}")
     parsing_start_time = time.perf_counter()
     try:
-        points_slices = parse_directory(input_directory)
+        points_slices = parse_directory(input_directory, threshold=threshold)
     except Exception as e:
         print(f"❌ Error parsing CSV files: {e}")
         return
@@ -110,6 +111,7 @@ def create_dxf_from_csv_directory(
 
         # Rotate XZ and YZ slices to XY plane
         if points_slice.slice_type == SliceType.XZ or points_slice.slice_type == SliceType.YZ:
+            # Create rotated slice block
             points_slice_rotated = rotate_slice_to_xy(points_slice)
             block_name_rotated = f"Block_{points_slice.name}_rotated"
             insert_position_rotated = (100.0 if points_slice.slice_type == SliceType.XZ else 200.0, 0.0, 0.0)
@@ -238,6 +240,17 @@ Examples:
         help="Y position for label start (default: 0.0)"
     )
 
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.050,
+        help=(
+            "Threshold for slice-type detection (max allowed variation of the"
+            " smallest axis). Smaller means stricter; larger means more"
+            " tolerant. Default: 0.050"
+        ),
+    )
+
     args = parser.parse_args()
     
     # Validate colors if provided
@@ -251,9 +264,10 @@ Examples:
     
     create_dxf_from_csv_directory(
         args.input_directory,
-        args.output_file, 
+        args.output_file,
         args.colors,
-        label_position
+        label_position,
+        threshold=args.threshold,
     )
 
 

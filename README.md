@@ -182,6 +182,9 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
   - Default: `-40.0`
 - `--label-y FLOAT`: Y position for label start
   - Default: `0.0`
+  
+- `--threshold FLOAT`: Slice detection threshold (max allowed variation of the smallest axis)
+  - Default: `0.050` (smaller is stricter; larger is more tolerant)
 
 ### Features
 
@@ -208,6 +211,9 @@ python point_slice_studio_cli.py --colors 1 3 5 4
 
 # Position labels at custom location
 python point_slice_studio_cli.py --label-x -100 --label-y 50
+
+# Adjust slice detection threshold (e.g., stricter)
+python point_slice_studio_cli.py path/to/csv/files output.dxf --threshold 0.005
 ```
 
 ### Output

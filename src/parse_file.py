@@ -78,13 +78,18 @@ def detect_slice_type_from_data(
         return SliceType.UNKNOWN
 
 
-def parse_csv_file(filepath: str, max_points: Optional[int] = None) -> PointsSlice:
+def parse_csv_file(
+    filepath: str,
+    max_points: Optional[int] = None,
+    threshold: float = 0.050,
+) -> PointsSlice:
     """
     Parse a space-separated CSV file containing 3D point coordinates.
 
     Args:
         filepath: Path to the CSV file to parse
         max_points: Maximum number of points to read (None for all points)
+        threshold: Maximum variation allowed to consider a dimension constant
 
     Returns:
         PointsSlice object containing the parsed points and metadata
@@ -144,13 +149,15 @@ def parse_csv_file(filepath: str, max_points: Optional[int] = None) -> PointsSli
         raise ValueError(f"No valid points found in file {filepath}")
 
     # Determine metadata
-    slice_type = detect_slice_type_from_data(points)
+    slice_type = detect_slice_type_from_data(points, threshold=threshold)
 
     return PointsSlice(points=points, name=name, slice_type=slice_type)
 
 
 def parse_directory(
-    directory_path: str, max_points_per_file: Optional[int] = None
+    directory_path: str,
+    max_points_per_file: Optional[int] = None,
+    threshold: float = 0.050,
 ) -> List[PointsSlice]:
     """
     Parse all CSV files in a directory.
@@ -158,6 +165,7 @@ def parse_directory(
     Args:
         directory_path: Path to directory containing CSV files
         max_points_per_file: Maximum points to read per file (None for all)
+        threshold: Maximum variation allowed to consider a dimension constant
 
     Returns:
         List of PointsSlice objects
@@ -181,7 +189,11 @@ def parse_directory(
     for filename in csv_files:
         filepath = os.path.join(directory_path, filename)
         try:
-            slice_obj = parse_csv_file(filepath, max_points_per_file)
+            slice_obj = parse_csv_file(
+                filepath,
+                max_points=max_points_per_file,
+                threshold=threshold,
+            )
             slices.append(slice_obj)
             print(
                 f"Parsed {filename}: {len(slice_obj.points)} points, type: {slice_obj.slice_type.value}"
