@@ -14,11 +14,10 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=[
-        ('src', 'src'),  # Include the src directory
+        ('src/ps_core', 'ps_core'),  # Include the ps_core package
         ('tests/testdata', 'tests/testdata'),  # Include test data
         ('point_slice_studio.ico', '.'),  # Include icon file for window icon
         ('README.md', '.'),
-        ('requirements.txt', '.'),
     ],
     hiddenimports=[
         'tkinter',

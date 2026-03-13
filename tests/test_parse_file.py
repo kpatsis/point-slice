@@ -7,21 +7,16 @@ and directory parsing functionality.
 """
 
 import os
-import sys
+import shutil
+import tempfile
+import unittest
 
-# Add the src directory to the path for imports - must be before other imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
-import shutil  # noqa: E402
-import tempfile  # noqa: E402
-import unittest  # noqa: E402
-
-from parse_file import (  # noqa: E402
+from ps_core.parse_file import (
     detect_slice_type_from_data,
     parse_csv_file,
     parse_directory,
 )
-from points_slice import Point3D, SliceType, PointsSlice  # noqa: E402
+from ps_core.points_slice import Point3D, SliceType, PointsSlice
 
 
 class TestDetectSliceType(unittest.TestCase):

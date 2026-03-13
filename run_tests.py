@@ -7,10 +7,6 @@ This script runs all unit tests and provides a summary of results.
 
 import unittest
 import sys
-import os
-
-# Add the tests directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'tests'))
 
 def run_all_tests():
     """Run all unit tests in the tests directory."""

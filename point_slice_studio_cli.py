@@ -32,17 +32,13 @@ If no arguments are provided, defaults to:
 """
 
 import os
-import sys
 import argparse
 import time
 from typing import List
 
-# Add the src directory to the path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-
-from dxf_document import DXFDocument, Block  # noqa: E402
-from parse_file import parse_directory  # noqa: E402
-from points_slice import SliceType, rotate_slice_to_xy  # noqa: E402
+from ps_core.dxf_document import DXFDocument, Block
+from ps_core.parse_file import parse_directory
+from ps_core.points_slice import SliceType, rotate_slice_to_xy
 
 
 def create_dxf_from_csv_directory(

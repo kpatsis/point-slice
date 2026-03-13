@@ -24,7 +24,7 @@ containing 3D point coordinates and create PointsSlice objects.
 import os
 import random
 from typing import Optional, List
-from points_slice import Point3D, PointsSlice, SliceType
+from ps_core.points_slice import Point3D, PointsSlice, SliceType
 
 
 def detect_slice_type_from_data(
