@@ -29,13 +29,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 import threading
 from typing import List, Optional
-import io
-import contextlib
 
-# Add the src directory to the path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
-
-# Import the main functionality
 from point_slice_studio_cli import create_dxf_from_csv_directory
 
 

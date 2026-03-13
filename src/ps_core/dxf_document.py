@@ -17,7 +17,7 @@
 from dataclasses import dataclass
 import ezdxf
 from typing import Optional, List
-from points_slice import PointsSlice
+from ps_core.points_slice import PointsSlice
 
 
 @dataclass

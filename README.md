@@ -48,15 +48,15 @@ A Python library for parsing and analyzing 3D point cloud data from space-separa
    .\venv\Scripts\activate.bat
    ```
 
-4. **Install main dependencies:**
+4. **Install the package:**
    ```bash
    pip install --upgrade pip
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
 5. **Install development dependencies (optional):**
    ```bash
-   pip install -r requirements-dev.txt
+   pip install -e ".[dev]"
    ```
 
 6. **Verify installation:**
@@ -88,7 +88,7 @@ cd ~\point-slice
 git pull
 .\venv\Scripts\Activate.ps1
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### Creating DXF Files (GUI - Recommended)
@@ -262,7 +262,7 @@ python tests/test_parse_file.py
 Install development dependencies:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"
 ```
 
 ### Format Code with Black
