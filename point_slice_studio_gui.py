@@ -30,7 +30,7 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 import threading
 from typing import List, Optional
 
-from point_slice_studio_cli import create_dxf_from_csv_directory
+from ps_core.workflow import create_dxf_from_csv_directory
 
 
 class RedirectText:
