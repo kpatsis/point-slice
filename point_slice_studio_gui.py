@@ -48,24 +48,30 @@ class RedirectText:
         self.text_widget = text_widget
         self._queue: queue.Queue[str] = queue.Queue()
         self._polling = False
+        self._after_id: Optional[str] = None
 
     def start_polling(self):
         """Begin draining the queue on the main-thread event loop.
 
-        Safe to call from any thread because ``after()`` merely posts
-        an event; the callback itself always runs on the main thread.
+        Must be called from the main thread.  tkinter widget methods
+        (including ``after()``) are not thread-safe.
         """
         if not self._polling:
             self._polling = True
-            self.text_widget.after(0, self._poll)
+            self._after_id = self.text_widget.after(0, self._poll)
 
     def stop_polling(self):
-        """Stop the polling timer.
+        """Stop the polling timer and drain any remaining output.
 
-        Safe to call from any thread.  The already-scheduled ``_poll()``
-        on the main thread will perform the final drain before stopping.
+        Must be called from the main thread.  Cancels any scheduled
+        ``_poll()`` callback and performs a final synchronous drain
+        to avoid leftover text appearing in a subsequent run.
         """
         self._polling = False
+        if self._after_id is not None:
+            self.text_widget.after_cancel(self._after_id)
+            self._after_id = None
+        self._drain()
 
     def write(self, string: str):
         self._queue.put(string)
@@ -76,15 +82,18 @@ class RedirectText:
     def _poll(self):
         self._drain()
         if self._polling:
-            self.text_widget.after(_POLL_INTERVAL_MS, self._poll)
+            self._after_id = self.text_widget.after(_POLL_INTERVAL_MS, self._poll)
 
     def _drain(self):
+        """Drain queued text with a single insert per poll to keep UI responsive."""
+        chunks: List[str] = []
         while True:
             try:
-                text = self._queue.get_nowait()
+                chunks.append(self._queue.get_nowait())
             except queue.Empty:
                 break
-            self.text_widget.insert(tk.END, text)
+        if chunks:
+            self.text_widget.insert(tk.END, "".join(chunks))
             self.text_widget.see(tk.END)
 
 
