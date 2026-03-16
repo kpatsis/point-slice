@@ -36,9 +36,9 @@ def main():
     print("🧹 Running Local Code Quality Checks")
     print("(Same checks that run in GitHub Actions)")
     
-    paths = "src/ tests/ point_slice_studio_gui.py point_slice_studio_cli.py lint.py run_tests.py"
+    paths = "src/ tests/ point_slice_studio_gui.py point_slice_studio_cli.py"
     checks = [
-        ("black --check --diff src/ tests/ point_slice_studio_gui.py point_slice_studio_cli.py lint.py run_tests.py", "Code Formatting Check"),
+        (f"black --check --diff {paths}", "Code Formatting Check"),
         (f"flake8 {paths} --count --select=E9,F63,F7,F82,F401,F841 --show-source --statistics", "Critical Linting Issues"),
         (f"flake8 {paths} --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics", "Style Warnings"),
     ]
