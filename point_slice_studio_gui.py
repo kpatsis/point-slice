@@ -214,18 +214,19 @@ class PointSliceStudioGUI:
         row += 2
         
         # Label Position Section
-        label_frame = ttk.LabelFrame(main_frame, text="Label Position", padding="5")
-        label_frame.grid(row=row, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
-        label_frame.columnconfigure(1, weight=1)
-        label_frame.columnconfigure(3, weight=1)
+        label_wrapper = ttk.Frame(main_frame)
+        label_wrapper.grid(row=row, column=0, columnspan=3, sticky=tk.W, pady=10)
+        label_frame = ttk.LabelFrame(label_wrapper, text="Label Position", padding="5")
+        label_frame.pack(anchor=tk.W)
         
-        ttk.Label(label_frame, text="X:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
-        self.label_x_entry = ttk.Entry(label_frame, textvariable=self.label_x, width=15)
-        self.label_x_entry.grid(row=0, column=1, sticky=tk.W, padx=(0, 20))
-        
-        ttk.Label(label_frame, text="Y:").grid(row=0, column=2, sticky=tk.W, padx=(0, 5))
-        self.label_y_entry = ttk.Entry(label_frame, textvariable=self.label_y, width=15)
-        self.label_y_entry.grid(row=0, column=3, sticky=tk.W)
+        label_inner = ttk.Frame(label_frame)
+        label_inner.pack(anchor=tk.W)
+        ttk.Label(label_inner, text="X:").pack(side=tk.LEFT, padx=(0, 2))
+        self.label_x_entry = ttk.Entry(label_inner, textvariable=self.label_x, width=12)
+        self.label_x_entry.pack(side=tk.LEFT, padx=(0, 2))
+        ttk.Label(label_inner, text="Y:").pack(side=tk.LEFT, padx=(0, 2))
+        self.label_y_entry = ttk.Entry(label_inner, textvariable=self.label_y, width=12)
+        self.label_y_entry.pack(side=tk.LEFT)
         
         row += 1
         
@@ -413,7 +414,7 @@ def main():
     elif "clam" in available_themes:
         style.theme_use("clam")
     
-    app = PointSliceStudioGUI(root)
+    PointSliceStudioGUI(root)
     
     try:
         root.mainloop()

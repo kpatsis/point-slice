@@ -5,7 +5,6 @@ Local code quality checker - runs the same checks as CI.
 
 import subprocess
 import sys
-import os
 
 def run_command(cmd, description):
     """Run a command and report results."""
@@ -37,10 +36,11 @@ def main():
     print("🧹 Running Local Code Quality Checks")
     print("(Same checks that run in GitHub Actions)")
     
+    paths = "src/ tests/ point_slice_studio_gui.py point_slice_studio_cli.py lint.py run_tests.py"
     checks = [
-        ("black --check --diff src/ tests/", "Code Formatting Check"),
-        ("flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics", "Critical Linting Issues"),
-        ("flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics", "Style Warnings"),
+        ("black --check --diff src/ tests/ point_slice_studio_gui.py point_slice_studio_cli.py lint.py run_tests.py", "Code Formatting Check"),
+        (f"flake8 {paths} --count --select=E9,F63,F7,F82,F401,F841 --show-source --statistics", "Critical Linting Issues"),
+        (f"flake8 {paths} --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics", "Style Warnings"),
     ]
     
     all_passed = True
