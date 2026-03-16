@@ -24,6 +24,7 @@ Provides the same functionality as the command line version with an intuitive GU
 """
 
 import os
+import queue
 import sys
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
@@ -32,20 +33,68 @@ from typing import List, Optional
 
 from ps_core.workflow import create_dxf_from_csv_directory
 
+_POLL_INTERVAL_MS = 50
+
 
 class RedirectText:
-    """Helper class to redirect print output to a text widget."""
-    
-    def __init__(self, text_widget):
+    """Redirect print output to a tkinter text widget in a thread-safe way.
+
+    Strings written from any thread are placed into a queue.  The main
+    thread drains the queue on a timer and performs the actual widget
+    updates, which keeps all tkinter calls on the correct thread.
+    """
+
+    def __init__(self, text_widget: scrolledtext.ScrolledText):
         self.text_widget = text_widget
-    
-    def write(self, string):
-        self.text_widget.insert(tk.END, string)
-        self.text_widget.see(tk.END)
-        self.text_widget.update()
-    
+        self._queue: queue.Queue[str] = queue.Queue()
+        self._polling = False
+        self._after_id: Optional[str] = None
+
+    def start_polling(self):
+        """Begin draining the queue on the main-thread event loop.
+
+        Must be called from the main thread.  tkinter widget methods
+        (including ``after()``) are not thread-safe.
+        """
+        if not self._polling:
+            self._polling = True
+            self._after_id = self.text_widget.after(0, self._poll)
+
+    def stop_polling(self):
+        """Stop the polling timer and drain any remaining output.
+
+        Must be called from the main thread.  Cancels any scheduled
+        ``_poll()`` callback and performs a final synchronous drain
+        to avoid leftover text appearing in a subsequent run.
+        """
+        self._polling = False
+        if self._after_id is not None:
+            self.text_widget.after_cancel(self._after_id)
+            self._after_id = None
+        self._drain()
+
+    def write(self, string: str):
+        self._queue.put(string)
+
     def flush(self):
         pass
+
+    def _poll(self):
+        self._drain()
+        if self._polling:
+            self._after_id = self.text_widget.after(_POLL_INTERVAL_MS, self._poll)
+
+    def _drain(self):
+        """Drain queued text with a single insert per poll to keep UI responsive."""
+        chunks: List[str] = []
+        while True:
+            try:
+                chunks.append(self._queue.get_nowait())
+            except queue.Empty:
+                break
+        if chunks:
+            self.text_widget.insert(tk.END, "".join(chunks))
+            self.text_widget.see(tk.END)
 
 
 class PointSliceStudioGUI:
@@ -288,60 +337,64 @@ class PointSliceStudioGUI:
         """Process the files in a separate thread to avoid blocking the GUI."""
         if self.processing:
             return
-        
+
         if not self.validate_inputs():
             return
-        
+
         self.processing = True
         self.process_button.config(text="Processing...", state="disabled")
         self.clear_log()
-        
-        # Start processing in a separate thread
-        thread = threading.Thread(target=self.run_processing, daemon=True)
+
+        input_dir = self.input_directory.get()
+        output_file = self.output_file.get()
+        colors = self.parse_colors()
+        label_position = (self.label_x.get(), self.label_y.get())
+
+        self._redirector = RedirectText(self.log_text)
+        self._redirector.start_polling()
+
+        self._old_stdout = sys.stdout
+        sys.stdout = self._redirector
+
+        thread = threading.Thread(
+            target=self._run_processing,
+            args=(input_dir, output_file, colors, label_position),
+            daemon=True,
+        )
         thread.start()
-    
-    def run_processing(self):
-        """Run the actual processing in a background thread."""
+
+    def _run_processing(self, input_dir, output_file, colors, label_position):
+        """Run the actual processing in a background thread.
+
+        This method only calls ``create_dxf_from_csv_directory`` (which
+        uses ``print``).  All tkinter interaction is handled by the main
+        thread via ``after`` callbacks.
+        """
         try:
-            # Redirect stdout to the log widget
-            old_stdout = sys.stdout
-            sys.stdout = RedirectText(self.log_text)
-            
-            # Get parameters
-            input_dir = self.input_directory.get()
-            output_file = self.output_file.get()
-            colors = self.parse_colors()
-            label_position = (self.label_x.get(), self.label_y.get())
-            
-            # Run the processing
             create_dxf_from_csv_directory(
                 input_dir,
                 output_file,
                 colors,
-                label_position
+                label_position,
             )
-            
-            # Show success message
+
             self.root.after(0, lambda: messagebox.showinfo(
-                "Success", 
-                f"DXF file created successfully!\n\nOutput: {output_file}"
+                "Success",
+                f"DXF file created successfully!\n\nOutput: {output_file}",
             ))
-            
+
         except Exception as e:
-            # Show error message
             error_msg = f"An error occurred during processing:\n\n{str(e)}"
             self.root.after(0, lambda: messagebox.showerror("Error", error_msg))
             print(f"\n❌ Error: {str(e)}")
-            
+
         finally:
-            # Restore stdout
-            sys.stdout = old_stdout
-            
-            # Re-enable the button
-            self.root.after(0, self.processing_completed)
-    
-    def processing_completed(self):
-        """Called when processing is completed."""
+            self.root.after(0, self._finish_processing)
+
+    def _finish_processing(self):
+        """Called on the main thread when the worker is done."""
+        sys.stdout = self._old_stdout
+        self._redirector.stop_polling()
         self.processing = False
         self.process_button.config(text="Create DXF File", state="normal")
 
