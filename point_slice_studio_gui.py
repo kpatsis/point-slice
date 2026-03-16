@@ -24,6 +24,7 @@ Provides the same functionality as the command line version with an intuitive GU
 """
 
 import os
+import queue
 import sys
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
@@ -32,20 +33,50 @@ from typing import List, Optional
 
 from ps_core.workflow import create_dxf_from_csv_directory
 
+_POLL_INTERVAL_MS = 50
+
 
 class RedirectText:
-    """Helper class to redirect print output to a text widget."""
-    
-    def __init__(self, text_widget):
+    """Redirect print output to a tkinter text widget in a thread-safe way.
+
+    Strings written from any thread are placed into a queue.  The main
+    thread drains the queue on a timer and performs the actual widget
+    updates, which keeps all tkinter calls on the correct thread.
+    """
+
+    def __init__(self, text_widget: scrolledtext.ScrolledText):
         self.text_widget = text_widget
-    
-    def write(self, string):
-        self.text_widget.insert(tk.END, string)
-        self.text_widget.see(tk.END)
-        self.text_widget.update()
-    
+        self._queue: queue.Queue[str] = queue.Queue()
+        self._polling = False
+
+    def start_polling(self):
+        if not self._polling:
+            self._polling = True
+            self._poll()
+
+    def stop_polling(self):
+        self._polling = False
+        self._drain()
+
+    def write(self, string: str):
+        self._queue.put(string)
+
     def flush(self):
         pass
+
+    def _poll(self):
+        self._drain()
+        if self._polling:
+            self.text_widget.after(_POLL_INTERVAL_MS, self._poll)
+
+    def _drain(self):
+        while True:
+            try:
+                text = self._queue.get_nowait()
+            except queue.Empty:
+                break
+            self.text_widget.insert(tk.END, text)
+            self.text_widget.see(tk.END)
 
 
 class PointSliceStudioGUI:
@@ -288,59 +319,57 @@ class PointSliceStudioGUI:
         """Process the files in a separate thread to avoid blocking the GUI."""
         if self.processing:
             return
-        
+
         if not self.validate_inputs():
             return
-        
+
         self.processing = True
         self.process_button.config(text="Processing...", state="disabled")
         self.clear_log()
-        
-        # Start processing in a separate thread
-        thread = threading.Thread(target=self.run_processing, daemon=True)
+
+        input_dir = self.input_directory.get()
+        output_file = self.output_file.get()
+        colors = self.parse_colors()
+        label_position = (self.label_x.get(), self.label_y.get())
+
+        thread = threading.Thread(
+            target=self._run_processing,
+            args=(input_dir, output_file, colors, label_position),
+            daemon=True,
+        )
         thread.start()
-    
-    def run_processing(self):
+
+    def _run_processing(self, input_dir, output_file, colors, label_position):
         """Run the actual processing in a background thread."""
+        redirector = RedirectText(self.log_text)
+        old_stdout = sys.stdout
+        sys.stdout = redirector
+        redirector.start_polling()
+
         try:
-            # Redirect stdout to the log widget
-            old_stdout = sys.stdout
-            sys.stdout = RedirectText(self.log_text)
-            
-            # Get parameters
-            input_dir = self.input_directory.get()
-            output_file = self.output_file.get()
-            colors = self.parse_colors()
-            label_position = (self.label_x.get(), self.label_y.get())
-            
-            # Run the processing
             create_dxf_from_csv_directory(
                 input_dir,
                 output_file,
                 colors,
-                label_position
+                label_position,
             )
-            
-            # Show success message
+
             self.root.after(0, lambda: messagebox.showinfo(
-                "Success", 
-                f"DXF file created successfully!\n\nOutput: {output_file}"
+                "Success",
+                f"DXF file created successfully!\n\nOutput: {output_file}",
             ))
-            
+
         except Exception as e:
-            # Show error message
             error_msg = f"An error occurred during processing:\n\n{str(e)}"
             self.root.after(0, lambda: messagebox.showerror("Error", error_msg))
             print(f"\n❌ Error: {str(e)}")
-            
+
         finally:
-            # Restore stdout
             sys.stdout = old_stdout
-            
-            # Re-enable the button
-            self.root.after(0, self.processing_completed)
-    
-    def processing_completed(self):
+            redirector.stop_polling()
+            self.root.after(0, self._processing_completed)
+
+    def _processing_completed(self):
         """Called when processing is completed."""
         self.processing = False
         self.process_button.config(text="Create DXF File", state="normal")
