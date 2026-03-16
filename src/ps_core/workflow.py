@@ -146,7 +146,6 @@ def create_dxf_from_csv_directory(
         saving_duration = saving_end_time - saving_start_time
 
         if os.path.exists(output_file):
-            file_size = os.path.getsize(output_file)
             print(f"✅ DXF file saved successfully in {saving_duration:.3f} seconds")
         else:
             print("❌ Error: DXF file was not created")

@@ -269,7 +269,7 @@ pip install -e ".[dev]"
 
 ```bash
 # Auto-format code
-black src/ tests/
+black src/ tests/ point_slice_studio_cli.py point_slice_studio_gui.py  
 ```
 
 ### Run All Quality Checks
@@ -283,6 +283,7 @@ python lint.py
 This will:
 - ✅ Check code formatting (Black)
 - ✅ Check for critical linting issues (flake8)
+- ✅ Check for unused imports (F401) and dead code (F841 – unused variables)
 - ✅ Show style warnings
 - ✅ Report if code is ready to push
 
@@ -292,7 +293,7 @@ Before committing changes:
 
 ```bash
 1. python lint.py        # Check code quality
-2. black src/ tests/     # Fix formatting if needed  
+2. black src/ tests/ point_slice_studio_cli.py point_slice_studio_gui.py  # Fix formatting if needed  
 3. python run_tests.py   # Run tests
 4. git add & commit      # Push with confidence!
 ```
@@ -301,8 +302,8 @@ Before committing changes:
 Automated testing runs on:
 - Push to main branch
 - Pull requests
-- Ubuntu latest with Python 3.11
-- Includes code quality checks (formatting, linting)
+- Ubuntu latest with Python 3.12
+- Includes code quality checks (formatting, linting, unused imports, dead code)
 
 ## License
 
