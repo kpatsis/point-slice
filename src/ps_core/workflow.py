@@ -74,7 +74,9 @@ def create_dxf_from_csv_directory(
         print("❌ Error: No valid CSV files found or parsed")
         return
 
-    print(f"✅ Successfully parsed {len(points_slices)} CSV files in {parsing_duration:.3f} seconds")
+    print(
+        f"✅ Successfully parsed {len(points_slices)} CSV files in {parsing_duration:.3f} seconds"
+    )
 
     default_colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     default_label_position = (-40.0, 0.0)
@@ -89,10 +91,17 @@ def create_dxf_from_csv_directory(
     for points_slice in points_slices:
         layer_name = f"Layer_{points_slice.name}"
 
-        if points_slice.slice_type == SliceType.XZ or points_slice.slice_type == SliceType.YZ:
+        if (
+            points_slice.slice_type == SliceType.XZ
+            or points_slice.slice_type == SliceType.YZ
+        ):
             points_slice_rotated = rotate_slice_to_xy(points_slice)
             block_name_rotated = f"Block_{points_slice.name}_rotated"
-            insert_position_rotated = (100.0 if points_slice.slice_type == SliceType.XZ else 200.0, 0.0, 0.0)
+            insert_position_rotated = (
+                100.0 if points_slice.slice_type == SliceType.XZ else 200.0,
+                0.0,
+                0.0,
+            )
             block_rotated = Block(
                 points_slice=points_slice_rotated,
                 layer_name=layer_name,
@@ -100,7 +109,9 @@ def create_dxf_from_csv_directory(
                 insert_position=insert_position_rotated,
             )
             doc.add_block(block_rotated)
-            print(f"➕ Added rotated block '{points_slice_rotated.name}' with {len(points_slice_rotated.points)} points ({points_slice_rotated.slice_type.value})")
+            print(
+                f"➕ Added rotated block '{points_slice_rotated.name}' with {len(points_slice_rotated.points)} points ({points_slice_rotated.slice_type.value})"
+            )
 
         block = Block(
             points_slice=points_slice,
@@ -110,7 +121,9 @@ def create_dxf_from_csv_directory(
         )
 
         doc.add_block(block)
-        print(f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})")
+        print(
+            f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})"
+        )
 
     print(f"📦 Total blocks in document: {len(doc.blocks)}")
 
