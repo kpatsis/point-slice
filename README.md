@@ -269,7 +269,7 @@ pip install -e ".[dev]"
 
 ```bash
 # Auto-format code
-black src/ tests/
+black src/ tests/ point_slice_studio_cli.py point_slice_studio_gui.py  
 ```
 
 ### Run All Quality Checks
@@ -293,7 +293,7 @@ Before committing changes:
 
 ```bash
 1. python lint.py        # Check code quality
-2. black src/ tests/     # Fix formatting if needed  
+2. black src/ tests/ point_slice_studio_cli.py point_slice_studio_gui.py  # Fix formatting if needed  
 3. python run_tests.py   # Run tests
 4. git add & commit      # Push with confidence!
 ```

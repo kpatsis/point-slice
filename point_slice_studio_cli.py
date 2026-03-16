@@ -46,42 +46,42 @@ Examples:
     python point_slice_studio_cli.py                                    # Use defaults
     python point_slice_studio_cli.py data/csv_files output.dxf         # Custom paths
     python point_slice_studio_cli.py /path/to/csv/files result.dxf     # Absolute paths
-        """
+        """,
     )
-    
+
     parser.add_argument(
         "input_directory",
         nargs="?",
         default="tests/testdata/02_csv",
-        help="Directory containing CSV files (default: tests/testdata/02_csv)"
+        help="Directory containing CSV files (default: tests/testdata/02_csv)",
     )
-    
+
     parser.add_argument(
-        "output_file", 
+        "output_file",
         nargs="?",
         default="output.dxf",
-        help="Output DXF filename (default: output.dxf)"
+        help="Output DXF filename (default: output.dxf)",
     )
-    
+
     parser.add_argument(
         "--colors",
         nargs="+",
         type=int,
-        help="Custom color indices (1-256) for AutoCAD colors"
+        help="Custom color indices (1-256) for AutoCAD colors",
     )
-    
+
     parser.add_argument(
         "--label-x",
         type=float,
         default=-40.0,
-        help="X position for label start (default: -40.0)"
+        help="X position for label start (default: -40.0)",
     )
-    
+
     parser.add_argument(
-        "--label-y", 
+        "--label-y",
         type=float,
         default=0.0,
-        help="Y position for label start (default: 0.0)"
+        help="Y position for label start (default: 0.0)",
     )
 
     parser.add_argument(
@@ -96,16 +96,18 @@ Examples:
     )
 
     args = parser.parse_args()
-    
+
     # Validate colors if provided
     if args.colors:
         invalid_colors = [c for c in args.colors if c < 1 or c > 256]
         if invalid_colors:
-            print(f"❌ Error: Invalid color indices: {invalid_colors}. Colors must be between 1-256.")
+            print(
+                f"❌ Error: Invalid color indices: {invalid_colors}. Colors must be between 1-256."
+            )
             return
-    
+
     label_position = (args.label_x, args.label_y)
-    
+
     create_dxf_from_csv_directory(
         args.input_directory,
         args.output_file,
@@ -116,4 +118,4 @@ Examples:
 
 
 if __name__ == "__main__":
-    main() 
+    main()
