@@ -12,6 +12,7 @@ from ps_core.parse_file import (
     parse_directory,
 )
 from ps_core.dxf_document import Block, DXFDocument
+from ps_core.workflow import create_dxf_from_csv_directory
 
 __all__ = [
     "Point3D",
@@ -23,4 +24,5 @@ __all__ = [
     "parse_directory",
     "Block",
     "DXFDocument",
+    "create_dxf_from_csv_directory",
 ]
