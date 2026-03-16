@@ -50,13 +50,22 @@ class RedirectText:
         self._polling = False
 
     def start_polling(self):
+        """Begin draining the queue on the main-thread event loop.
+
+        Safe to call from any thread because ``after()`` merely posts
+        an event; the callback itself always runs on the main thread.
+        """
         if not self._polling:
             self._polling = True
-            self._poll()
+            self.text_widget.after(0, self._poll)
 
     def stop_polling(self):
+        """Stop the polling timer.
+
+        Safe to call from any thread.  The already-scheduled ``_poll()``
+        on the main thread will perform the final drain before stopping.
+        """
         self._polling = False
-        self._drain()
 
     def write(self, string: str):
         self._queue.put(string)
@@ -332,6 +341,12 @@ class PointSliceStudioGUI:
         colors = self.parse_colors()
         label_position = (self.label_x.get(), self.label_y.get())
 
+        self._redirector = RedirectText(self.log_text)
+        self._redirector.start_polling()
+
+        self._old_stdout = sys.stdout
+        sys.stdout = self._redirector
+
         thread = threading.Thread(
             target=self._run_processing,
             args=(input_dir, output_file, colors, label_position),
@@ -340,12 +355,12 @@ class PointSliceStudioGUI:
         thread.start()
 
     def _run_processing(self, input_dir, output_file, colors, label_position):
-        """Run the actual processing in a background thread."""
-        redirector = RedirectText(self.log_text)
-        old_stdout = sys.stdout
-        sys.stdout = redirector
-        redirector.start_polling()
+        """Run the actual processing in a background thread.
 
+        This method only calls ``create_dxf_from_csv_directory`` (which
+        uses ``print``).  All tkinter interaction is handled by the main
+        thread via ``after`` callbacks.
+        """
         try:
             create_dxf_from_csv_directory(
                 input_dir,
@@ -365,12 +380,12 @@ class PointSliceStudioGUI:
             print(f"\n❌ Error: {str(e)}")
 
         finally:
-            sys.stdout = old_stdout
-            redirector.stop_polling()
-            self.root.after(0, self._processing_completed)
+            self.root.after(0, self._finish_processing)
 
-    def _processing_completed(self):
-        """Called when processing is completed."""
+    def _finish_processing(self):
+        """Called on the main thread when the worker is done."""
+        sys.stdout = self._old_stdout
+        self._redirector.stop_polling()
         self.processing = False
         self.process_button.config(text="Create DXF File", state="normal")
 
