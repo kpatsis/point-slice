@@ -32,8 +32,11 @@ from ps_core.points_slice import SliceType, rotate_slice_to_xy
 def create_dxf_from_csv_directory(
     input_directory: str,
     output_file: str,
-    colors: List[int] = None,
-    label_position: tuple[float, float] = None,
+    anchor_point: tuple[float, float] = (0.0, 0.0),
+    xz_rotated_x_offset: float = -300.0,
+    yz_rotated_x_offset: float = -200.0,
+    colors: List[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    label_position: tuple[float, float] = (-40.0, 0.0),
     threshold: float = 0.050,
 ) -> None:
     """
@@ -42,6 +45,9 @@ def create_dxf_from_csv_directory(
     Args:
         input_directory: Directory containing CSV files
         output_file: Output DXF filename
+        anchor_point: (x, y) base for placing rotated XZ/YZ blocks
+        xz_rotated_x_offset: Added to anchor x for rotated XZ slices
+        yz_rotated_x_offset: Added to anchor x for rotated YZ slices
         colors: List of AutoCAD color indices to use
         label_position: Starting position for labels
         threshold: Threshold for slice-type detection
@@ -78,12 +84,6 @@ def create_dxf_from_csv_directory(
         f"✅ Successfully parsed {len(points_slices)} CSV files in {parsing_duration:.3f} seconds"
     )
 
-    default_colors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    default_label_position = (-40.0, 0.0)
-
-    colors = colors or default_colors
-    label_position = label_position or default_label_position
-
     doc = DXFDocument(colors=colors, label_start_position=label_position)
     print(f"📋 Created initial DXFDocument")
     print(f"🏷️  Label start position: {label_position}")
@@ -98,8 +98,13 @@ def create_dxf_from_csv_directory(
             points_slice_rotated = rotate_slice_to_xy(points_slice)
             block_name_rotated = f"Block_{points_slice.name}_rotated"
             insert_position_rotated = (
-                100.0 if points_slice.slice_type == SliceType.XZ else 200.0,
-                0.0,
+                anchor_point[0]
+                + (
+                    xz_rotated_x_offset
+                    if points_slice.slice_type == SliceType.XZ
+                    else yz_rotated_x_offset
+                ),
+                anchor_point[1],
                 0.0,
             )
             block_rotated = Block(

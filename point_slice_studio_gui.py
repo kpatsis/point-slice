@@ -132,6 +132,10 @@ class PointSliceStudioGUI:
         self.colors_text = tk.StringVar(value="1 2 3 4 5 6 7 8 9 10")
         self.label_x = tk.DoubleVar(value=-40.0)
         self.label_y = tk.DoubleVar(value=0.0)
+        self.anchor_x = tk.DoubleVar(value=0.0)
+        self.anchor_y = tk.DoubleVar(value=0.0)
+        self.xz_rotated_x_offset = tk.DoubleVar(value=-300.0)
+        self.yz_rotated_x_offset = tk.DoubleVar(value=-200.0)
 
         self.processing = False
 
@@ -247,6 +251,57 @@ class PointSliceStudioGUI:
         ttk.Label(label_inner, text="Y:").pack(side=tk.LEFT, padx=(0, 2))
         self.label_y_entry = ttk.Entry(label_inner, textvariable=self.label_y, width=12)
         self.label_y_entry.pack(side=tk.LEFT)
+
+        row += 1
+
+        # Anchor point and rotated-slice offsets (separate groups)
+        layout_wrapper = ttk.Frame(main_frame)
+        layout_wrapper.grid(row=row, column=0, columnspan=3, sticky=tk.W, pady=10)
+
+        anchor_frame = ttk.LabelFrame(layout_wrapper, text="Anchor point", padding="5")
+        anchor_frame.pack(anchor=tk.W, fill=tk.X, pady=(0, 8))
+        anchor_inner = ttk.Frame(anchor_frame)
+        anchor_inner.pack(anchor=tk.W)
+        ttk.Label(anchor_inner, text="X:").pack(side=tk.LEFT, padx=(0, 2))
+        ttk.Entry(anchor_inner, textvariable=self.anchor_x, width=12).pack(
+            side=tk.LEFT, padx=(0, 12)
+        )
+        ttk.Label(anchor_inner, text="Y:").pack(side=tk.LEFT, padx=(0, 2))
+        ttk.Entry(anchor_inner, textvariable=self.anchor_y, width=12).pack(side=tk.LEFT)
+        ttk.Label(
+            anchor_frame,
+            text="Base (x, y) of the imported point cloud (CLI: --anchor-x / --anchor-y).",
+            font=("TkDefaultFont", 8),
+            foreground="gray",
+        ).pack(anchor=tk.W, pady=(6, 0))
+
+        offsets_frame = ttk.LabelFrame(
+            layout_wrapper, text="Rotated slice offsets", padding="5"
+        )
+        offsets_frame.pack(anchor=tk.W, fill=tk.X)
+        offsets_inner = ttk.Frame(offsets_frame)
+        offsets_inner.pack(anchor=tk.W)
+        ttk.Label(offsets_inner, text="XZ-slice X offset:").pack(
+            side=tk.LEFT, padx=(0, 4)
+        )
+        ttk.Entry(offsets_inner, textvariable=self.xz_rotated_x_offset, width=12).pack(
+            side=tk.LEFT, padx=(0, 12)
+        )
+        ttk.Label(offsets_inner, text="YZ-slice X offset:").pack(
+            side=tk.LEFT, padx=(0, 4)
+        )
+        ttk.Entry(offsets_inner, textvariable=self.yz_rotated_x_offset, width=12).pack(
+            side=tk.LEFT
+        )
+        ttk.Label(
+            offsets_frame,
+            text=(
+                "Added to anchor X for each rotated slice type "
+                "(CLI: --xz-rotated-x-offset / --yz-rotated-x-offset)."
+            ),
+            font=("TkDefaultFont", 8),
+            foreground="gray",
+        ).pack(anchor=tk.W, pady=(6, 0))
 
         row += 1
 
@@ -397,6 +452,9 @@ class PointSliceStudioGUI:
         output_file = self.output_file.get()
         colors = self.parse_colors()
         label_position = (self.label_x.get(), self.label_y.get())
+        anchor_point = (self.anchor_x.get(), self.anchor_y.get())
+        xz_off = self.xz_rotated_x_offset.get()
+        yz_off = self.yz_rotated_x_offset.get()
 
         self._redirector = RedirectText(self.log_text)
         self._redirector.start_polling()
@@ -406,12 +464,29 @@ class PointSliceStudioGUI:
 
         thread = threading.Thread(
             target=self._run_processing,
-            args=(input_dir, output_file, colors, label_position),
+            args=(
+                input_dir,
+                output_file,
+                colors,
+                label_position,
+                anchor_point,
+                xz_off,
+                yz_off,
+            ),
             daemon=True,
         )
         thread.start()
 
-    def _run_processing(self, input_dir, output_file, colors, label_position):
+    def _run_processing(
+        self,
+        input_dir,
+        output_file,
+        colors,
+        label_position,
+        anchor_point,
+        xz_rotated_x_offset,
+        yz_rotated_x_offset,
+    ):
         """Run the actual processing in a background thread.
 
         This method only calls ``create_dxf_from_csv_directory`` (which
@@ -422,8 +497,11 @@ class PointSliceStudioGUI:
             create_dxf_from_csv_directory(
                 input_dir,
                 output_file,
-                colors,
-                label_position,
+                anchor_point=anchor_point,
+                xz_rotated_x_offset=xz_rotated_x_offset,
+                yz_rotated_x_offset=yz_rotated_x_offset,
+                colors=colors,
+                label_position=label_position,
             )
 
             self.root.after(
