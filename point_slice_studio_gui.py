@@ -281,11 +281,15 @@ class PointSliceStudioGUI:
         offsets_frame.pack(anchor=tk.W, fill=tk.X)
         offsets_inner = ttk.Frame(offsets_frame)
         offsets_inner.pack(anchor=tk.W)
-        ttk.Label(offsets_inner, text="XZ-slice X offset:").pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Label(offsets_inner, text="XZ-slice X offset:").pack(
+            side=tk.LEFT, padx=(0, 4)
+        )
         ttk.Entry(offsets_inner, textvariable=self.xz_rotated_x_offset, width=12).pack(
             side=tk.LEFT, padx=(0, 12)
         )
-        ttk.Label(offsets_inner, text="YZ-slice X offset:").pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Label(offsets_inner, text="YZ-slice X offset:").pack(
+            side=tk.LEFT, padx=(0, 4)
+        )
         ttk.Entry(offsets_inner, textvariable=self.yz_rotated_x_offset, width=12).pack(
             side=tk.LEFT
         )

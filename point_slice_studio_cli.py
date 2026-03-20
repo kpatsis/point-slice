@@ -89,18 +89,14 @@ Examples:
         "--xz-rotated-x-offset",
         type=float,
         default=-300.0,
-        help=(
-            "X offset added to anchor X for rotated XZ slices (default: -300.0)"
-        ),
+        help=("X offset added to anchor X for rotated XZ slices (default: -300.0)"),
     )
 
     parser.add_argument(
         "--yz-rotated-x-offset",
         type=float,
         default=-200.0,
-        help=(
-            "X offset added to anchor X for rotated YZ slices (default: -200.0)"
-        ),
+        help=("X offset added to anchor X for rotated YZ slices (default: -200.0)"),
     )
 
     parser.add_argument(
