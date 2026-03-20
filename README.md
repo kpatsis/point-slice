@@ -178,6 +178,14 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
 
 - `--colors COLOR [COLOR ...]`: Custom AutoCAD color indices (1-256)
   - Default: `1 2 3 4 5 6 7 8 9 10`
+- `--anchor-x FLOAT`: X coordinate of the imported point cloud
+  - Default: `0.0`
+- `--anchor-y FLOAT`: Y coordinate of the imported point cloud
+  - Default: `0.0`
+- `--xz-rotated-x-offset FLOAT`: X offset added to the anchor for rotated XZ slices
+  - Default: `-300.0`
+- `--yz-rotated-x-offset FLOAT`: X offset added to the anchor for rotated YZ slices
+  - Default: `-200.0`
 - `--label-x FLOAT`: X position for label start
   - Default: `-40.0`
 - `--label-y FLOAT`: Y position for label start
@@ -211,6 +219,9 @@ python point_slice_studio_cli.py --colors 1 3 5 4
 
 # Position labels at custom location
 python point_slice_studio_cli.py --label-x -100 --label-y 50
+
+# Anchor and offsets for rotated XZ/YZ blocks (defaults match the workflow)
+python point_slice_studio_cli.py path/to/csv/files output.dxf --anchor-x 0 --anchor-y 0 --xz-rotated-x-offset -300 --yz-rotated-x-offset -200
 
 # Adjust slice detection threshold (e.g., stricter)
 python point_slice_studio_cli.py path/to/csv/files output.dxf --threshold 0.005

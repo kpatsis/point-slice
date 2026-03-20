@@ -46,6 +46,7 @@ Examples:
     python point_slice_studio_cli.py                                    # Use defaults
     python point_slice_studio_cli.py data/csv_files output.dxf         # Custom paths
     python point_slice_studio_cli.py /path/to/csv/files result.dxf     # Absolute paths
+    python point_slice_studio_cli.py in/ out.dxf --anchor-x 10 --xz-rotated-x-offset -250
         """,
     )
 
@@ -68,6 +69,38 @@ Examples:
         nargs="+",
         type=int,
         help="Custom color indices (1-256) for AutoCAD colors",
+    )
+
+    parser.add_argument(
+        "--anchor-x",
+        type=float,
+        default=0.0,
+        help="X coordinate of the starting point of the imported point cloud (default: 0.0)",
+    )
+
+    parser.add_argument(
+        "--anchor-y",
+        type=float,
+        default=0.0,
+        help="Y coordinate of the starting point of the imported point cloud (default: 0.0)",
+    )
+
+    parser.add_argument(
+        "--xz-rotated-x-offset",
+        type=float,
+        default=-300.0,
+        help=(
+            "X offset added to anchor X for rotated XZ slices (default: -300.0)"
+        ),
+    )
+
+    parser.add_argument(
+        "--yz-rotated-x-offset",
+        type=float,
+        default=-200.0,
+        help=(
+            "X offset added to anchor X for rotated YZ slices (default: -200.0)"
+        ),
     )
 
     parser.add_argument(
@@ -107,12 +140,16 @@ Examples:
             return
 
     label_position = (args.label_x, args.label_y)
+    anchor_point = (args.anchor_x, args.anchor_y)
 
     create_dxf_from_csv_directory(
         args.input_directory,
         args.output_file,
-        args.colors,
-        label_position,
+        anchor_point=anchor_point,
+        xz_rotated_x_offset=args.xz_rotated_x_offset,
+        yz_rotated_x_offset=args.yz_rotated_x_offset,
+        colors=args.colors,
+        label_position=label_position,
         threshold=args.threshold,
     )
 
