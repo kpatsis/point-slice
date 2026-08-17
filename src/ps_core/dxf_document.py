@@ -26,6 +26,10 @@ class Block:
     layer_name: Optional[str] = None
     block_name: Optional[str] = None
     insert_position: Optional[tuple[float, float, float]] = (0.0, 0.0, 0.0)
+    # Reference point the label offset is applied to, in world coordinates.
+    # Blocks sharing a reference point get their labels stacked in one column,
+    # so labels stay next to the geometry they name.
+    label_origin: Optional[tuple[float, float, float]] = None
 
 
 class DXFDocument:
@@ -40,20 +44,47 @@ class DXFDocument:
         Args:
             colors: List of AutoCAD color indices (0-256) to use in round-robin fashion.
                    If None, defaults to [1, 2, 3, 4, 5, 6] (red, yellow, green, cyan, blue, magenta)
-            label_start_position: Starting position (x, y) for the first label. Subsequent labels
-                                will be placed below this position.
+            label_start_position: Offset (x, y) of the first label from a block's
+                                label origin. Subsequent labels of the same origin
+                                are placed below it.
         """
         self.blocks: List[Block] = []
         self.dxf_doc: ezdxf.document.Drawing = ezdxf.new(setup=True)
         self.colors = colors or [1, 2, 3, 4, 5, 6]  # Default colors
         self.color_index = 0
         self.label_start_position = label_start_position
-        self.current_label_y = label_start_position[1]
         self.text_height = 0.5
         self.text_spacing = 0.7  # Space between labels
+        # Next free label y per label column, keyed by the column's (x, y) origin
+        self.next_label_y: dict[tuple[float, float], float] = {}
 
     def add_block(self, block: Block):
         self.blocks.append(block)
+
+    def _next_label_position(self, block: Block) -> tuple[float, float, float]:
+        """
+        Reserve the next label position for a block's label column.
+
+        The label is offset from the block's label origin, so every group of
+        blocks sharing an origin (the point cloud, the rotated XZ view, the
+        rotated YZ view) gets its own column of labels.
+
+        Args:
+            block: The block whose label is about to be placed
+
+        Returns:
+            Label position (x, y, z) in world coordinates
+        """
+        origin = block.label_origin or (0.0, 0.0, 0.0)
+        column = (origin[0], origin[1])
+
+        if column not in self.next_label_y:
+            self.next_label_y[column] = origin[1] + self.label_start_position[1]
+
+        label_y = self.next_label_y[column]
+        self.next_label_y[column] -= self.text_spacing
+
+        return (origin[0] + self.label_start_position[0], label_y, 0.0)
 
     def save(self, filename: str):
         """
@@ -106,14 +137,11 @@ class DXFDocument:
                 dxfattribs={"layer": layer_name},
             )
 
-            # Add label text
-            label_text = block.points_slice.name
-            label_position = (self.label_start_position[0], self.current_label_y, 0.0)
-
-            text_entity = dxf_block.add_text(
-                label_text, dxfattribs={"height": self.text_height, "layer": layer_name}
+            # Add the label to the modelspace rather than to the block
+            # definition, so the block insert position does not drag it away
+            # from the column it belongs to
+            text_entity = modelspace.add_text(
+                block.points_slice.name,
+                dxfattribs={"height": self.text_height, "layer": layer_name},
             )
-            text_entity.set_placement(label_position)
-
-            # Move to next label position
-            self.current_label_y -= self.text_spacing
+            text_entity.set_placement(self._next_label_position(block))

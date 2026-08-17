@@ -26,13 +26,13 @@ from typing import List
 
 from ps_core.dxf_document import DXFDocument, Block
 from ps_core.parse_file import parse_directory
-from ps_core.points_slice import SliceType, rotate_slice_to_xy
+from ps_core.points_slice import SliceType, rotate_slice_to_xy, translate_slice
 
 
 def create_dxf_from_csv_directory(
     input_directory: str,
     output_file: str,
-    anchor_point: tuple[float, float] = (0.0, 0.0),
+    anchor_point: tuple[float, float, float] = (0.0, 0.0, 0.0),
     xz_rotated_x_offset: float = -300.0,
     yz_rotated_x_offset: float = -200.0,
     colors: List[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -45,14 +45,23 @@ def create_dxf_from_csv_directory(
     Args:
         input_directory: Directory containing CSV files
         output_file: Output DXF filename
-        anchor_point: (x, y) base for placing rotated XZ/YZ blocks
+        anchor_point: (x, y, z) origin of the imported point cloud. Rotated
+            XZ/YZ geometry is made relative to it, so the anchor plus the
+            offset below decides where a rotated block lands. A 2-tuple is
+            accepted, in which case z defaults to 0.0
         xz_rotated_x_offset: Added to anchor x for rotated XZ slices
         yz_rotated_x_offset: Added to anchor x for rotated YZ slices
         colors: List of AutoCAD color indices to use
-        label_position: Starting position for labels
+        label_position: (x, y) offset of the labels from the geometry they
+            name: from the anchor for the point cloud itself, and from the
+            insert position of each rotated XZ/YZ view
         threshold: Threshold for slice-type detection
     """
     execution_start_time = time.perf_counter()
+
+    anchor_x, anchor_y, anchor_z = (
+        anchor_point if len(anchor_point) == 3 else (*anchor_point, 0.0)
+    )
 
     print("\n" + "=" * 80)
     print("DXF DOCUMENT CREATION WORKFLOW")
@@ -87,6 +96,7 @@ def create_dxf_from_csv_directory(
     doc = DXFDocument(colors=colors, label_start_position=label_position)
     print(f"📋 Created initial DXFDocument")
     print(f"🏷️  Label start position: {label_position}")
+    print(f"📍 Anchor point: ({anchor_x}, {anchor_y}, {anchor_z})")
 
     for points_slice in points_slices:
         layer_name = f"Layer_{points_slice.name}"
@@ -95,16 +105,19 @@ def create_dxf_from_csv_directory(
             points_slice.slice_type == SliceType.XZ
             or points_slice.slice_type == SliceType.YZ
         ):
-            points_slice_rotated = rotate_slice_to_xy(points_slice)
+            points_slice_local = translate_slice(
+                points_slice, (-anchor_x, -anchor_y, -anchor_z)
+            )
+            points_slice_rotated = rotate_slice_to_xy(points_slice_local)
             block_name_rotated = f"Block_{points_slice.name}_rotated"
             insert_position_rotated = (
-                anchor_point[0]
+                anchor_x
                 + (
                     xz_rotated_x_offset
                     if points_slice.slice_type == SliceType.XZ
                     else yz_rotated_x_offset
                 ),
-                anchor_point[1],
+                anchor_y,
                 0.0,
             )
             block_rotated = Block(
@@ -112,6 +125,7 @@ def create_dxf_from_csv_directory(
                 layer_name=layer_name,
                 block_name=block_name_rotated,
                 insert_position=insert_position_rotated,
+                label_origin=insert_position_rotated,
             )
             doc.add_block(block_rotated)
             print(
@@ -123,6 +137,7 @@ def create_dxf_from_csv_directory(
             layer_name=layer_name,
             block_name=f"Block_{points_slice.name}",
             insert_position=(0.0, 0.0, 0.0),
+            label_origin=(anchor_x, anchor_y, 0.0),
         )
 
         doc.add_block(block)
