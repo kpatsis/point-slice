@@ -182,13 +182,15 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
   - Default: `0.0`
 - `--anchor-y FLOAT`: Y coordinate of the imported point cloud
   - Default: `0.0`
+- `--anchor-z FLOAT`: Z coordinate (elevation base) of the imported point cloud. Rotated XZ/YZ slices are placed relative to it, so a point cloud with a large elevation offset still lands next to the anchor
+  - Default: `0.0`
 - `--xz-rotated-x-offset FLOAT`: X offset added to the anchor for rotated XZ slices
   - Default: `-300.0`
 - `--yz-rotated-x-offset FLOAT`: X offset added to the anchor for rotated YZ slices
   - Default: `-200.0`
-- `--label-x FLOAT`: X position for label start
+- `--label-x FLOAT`: X offset of the labels from the geometry they name (from the anchor for the point cloud, from each rotated view for its own labels)
   - Default: `-40.0`
-- `--label-y FLOAT`: Y position for label start
+- `--label-y FLOAT`: Y offset of the first label, further labels are stacked below it
   - Default: `0.0`
   
 - `--threshold FLOAT`: Slice detection threshold (max allowed variation of the smallest axis)
@@ -197,10 +199,11 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
 ### Features
 
 - **Automatic slice type detection**: Identifies XY, XZ, YZ, and unknown slice types
-- **Smart positioning**: Places different slice types at different coordinates:
-  - XY slices: Origin (0, 0, 0)
-  - XZ slices: (100, 0, 0) - rotated to XY plane
-  - YZ slices: (200, 0, 0) - rotated to XY plane
+- **Smart positioning**: Every slice is inserted at its original coordinates, and XZ/YZ slices additionally get a copy rotated into the XY plane:
+  - Rotated XZ slices: `(anchor-x + --xz-rotated-x-offset, anchor-y, 0)`
+  - Rotated YZ slices: `(anchor-x + --yz-rotated-x-offset, anchor-y, 0)`
+  - Rotated geometry is made relative to the anchor `(x, y, z)` first, so the anchor plus the offset alone decides where a rotated block lands
+- **Labels next to the geometry**: Each block gets a text label offset by `--label-x` / `--label-y` from the geometry it names, so the point cloud and every rotated view carry their own column of labels
 - **Color-coded layers**: Each point slice gets its own layer with unique colors
 - **Progress reporting**: Real-time feedback during processing
 - **Error handling**: Comprehensive validation and error messages
@@ -217,11 +220,14 @@ python point_slice_studio_cli.py data/measurements/ engineering_drawing.dxf
 # Use custom colors (red, green, blue, cyan)
 python point_slice_studio_cli.py --colors 1 3 5 4
 
-# Position labels at custom location
+# Move the labels further away from the geometry they name
 python point_slice_studio_cli.py --label-x -100 --label-y 50
 
 # Anchor and offsets for rotated XZ/YZ blocks (defaults match the workflow)
-python point_slice_studio_cli.py path/to/csv/files output.dxf --anchor-x 0 --anchor-y 0 --xz-rotated-x-offset -300 --yz-rotated-x-offset -200
+python point_slice_studio_cli.py path/to/csv/files output.dxf --anchor-x 0 --anchor-y 0 --anchor-z 0 --xz-rotated-x-offset -300 --yz-rotated-x-offset -200
+
+# Point cloud with a large elevation offset (e.g. points around z = 3000)
+python point_slice_studio_cli.py path/to/csv/files output.dxf --anchor-x 1000 --anchor-y 2000 --anchor-z 3000
 
 # Adjust slice detection threshold (e.g., stricter)
 python point_slice_studio_cli.py path/to/csv/files output.dxf --threshold 0.005

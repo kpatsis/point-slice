@@ -134,6 +134,7 @@ class PointSliceStudioGUI:
         self.label_y = tk.DoubleVar(value=0.0)
         self.anchor_x = tk.DoubleVar(value=0.0)
         self.anchor_y = tk.DoubleVar(value=0.0)
+        self.anchor_z = tk.DoubleVar(value=0.0)
         self.xz_rotated_x_offset = tk.DoubleVar(value=-300.0)
         self.yz_rotated_x_offset = tk.DoubleVar(value=-200.0)
 
@@ -251,6 +252,17 @@ class PointSliceStudioGUI:
         ttk.Label(label_inner, text="Y:").pack(side=tk.LEFT, padx=(0, 2))
         self.label_y_entry = ttk.Entry(label_inner, textvariable=self.label_y, width=12)
         self.label_y_entry.pack(side=tk.LEFT)
+        ttk.Label(
+            label_frame,
+            text=(
+                "Offset of the labels from the geometry they name "
+                "(CLI: --label-x / --label-y).\n"
+                "The point cloud and every rotated view get their own column "
+                "of labels, stacked downwards."
+            ),
+            font=("TkDefaultFont", 8),
+            foreground="gray",
+        ).pack(anchor=tk.W, pady=(6, 0))
 
         row += 1
 
@@ -267,10 +279,20 @@ class PointSliceStudioGUI:
             side=tk.LEFT, padx=(0, 12)
         )
         ttk.Label(anchor_inner, text="Y:").pack(side=tk.LEFT, padx=(0, 2))
-        ttk.Entry(anchor_inner, textvariable=self.anchor_y, width=12).pack(side=tk.LEFT)
+        ttk.Entry(anchor_inner, textvariable=self.anchor_y, width=12).pack(
+            side=tk.LEFT, padx=(0, 12)
+        )
+        ttk.Label(anchor_inner, text="Z:").pack(side=tk.LEFT, padx=(0, 2))
+        ttk.Entry(anchor_inner, textvariable=self.anchor_z, width=12).pack(side=tk.LEFT)
         ttk.Label(
             anchor_frame,
-            text="Base (x, y) of the imported point cloud (CLI: --anchor-x / --anchor-y).",
+            text=(
+                "Base (x, y, z) of the imported point cloud "
+                "(CLI: --anchor-x / --anchor-y / --anchor-z).\n"
+                "Z is the elevation base: rotated XZ/YZ slices are placed "
+                "relative to it, so a large elevation offset still lands "
+                "next to the anchor."
+            ),
             font=("TkDefaultFont", 8),
             foreground="gray",
         ).pack(anchor=tk.W, pady=(6, 0))
@@ -452,7 +474,7 @@ class PointSliceStudioGUI:
         output_file = self.output_file.get()
         colors = self.parse_colors()
         label_position = (self.label_x.get(), self.label_y.get())
-        anchor_point = (self.anchor_x.get(), self.anchor_y.get())
+        anchor_point = (self.anchor_x.get(), self.anchor_y.get(), self.anchor_z.get())
         xz_off = self.xz_rotated_x_offset.get()
         yz_off = self.yz_rotated_x_offset.get()
 

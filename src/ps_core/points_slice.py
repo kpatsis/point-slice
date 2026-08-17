@@ -53,6 +53,30 @@ class PointsSlice:
     slice_type: SliceType
 
 
+def translate_slice(
+    slice_obj: PointsSlice, offset: tuple[float, float, float]
+) -> PointsSlice:
+    """
+    Translate all points of a slice by the given offset.
+
+    Args:
+        slice_obj: The PointsSlice to translate
+        offset: (dx, dy, dz) added to every point
+
+    Returns:
+        A new PointsSlice with translated coordinates, keeping the original
+        name and slice type (a translation does not change the axis ranges
+        used for slice-type detection)
+    """
+    dx, dy, dz = offset
+
+    return PointsSlice(
+        points=[Point3D(p.x + dx, p.y + dy, p.z + dz) for p in slice_obj.points],
+        name=slice_obj.name,
+        slice_type=slice_obj.slice_type,
+    )
+
+
 def rotate_slice_to_xy(slice_obj: PointsSlice) -> PointsSlice:
     """
     Rotate a slice to the XY plane.

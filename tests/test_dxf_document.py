@@ -5,7 +5,7 @@ import unittest
 
 from ps_core.dxf_document import DXFDocument, Block
 from ps_core.parse_file import parse_directory
-from ps_core.points_slice import SliceType, rotate_slice_to_xy
+from ps_core.points_slice import Point3D, PointsSlice, SliceType, rotate_slice_to_xy
 
 
 class TestDXFDocument(unittest.TestCase):
@@ -96,6 +96,92 @@ class TestDXFDocument(unittest.TestCase):
         print(f"   • Output file: {self.output_file}")
         print(f"   • File size: {file_size} bytes")
         print("=" * 80)
+
+
+class TestLabelPlacement(unittest.TestCase):
+    """
+    Test where block labels end up in the DXF.
+
+    Labels must sit next to the geometry they name, which means they are
+    offset from the block's label origin and are not dragged along by the
+    block's insert position.
+    """
+
+    def setUp(self):
+        self.label_offset = (-40.0, 0.0)
+        self.doc = DXFDocument(colors=[1], label_start_position=self.label_offset)
+
+    def make_block(self, name, insert_position, label_origin):
+        return Block(
+            points_slice=PointsSlice(
+                points=[Point3D(1.0, 1.0, 0.0)], name=name, slice_type=SliceType.XY
+            ),
+            layer_name=f"Layer_{name}",
+            block_name=f"Block_{name}",
+            insert_position=insert_position,
+            label_origin=label_origin,
+        )
+
+    def label_positions(self):
+        """Map every label text to its world position."""
+        return {
+            text.dxf.text: (text.dxf.insert.x, text.dxf.insert.y)
+            for text in self.doc.dxf_doc.modelspace().query("TEXT")
+        }
+
+    def test_label_is_offset_from_its_label_origin(self):
+        self.doc.add_block(
+            self.make_block("cloud", (0.0, 0.0, 0.0), (1000.0, 2000.0, 0.0))
+        )
+
+        self.doc.plot()
+
+        self.assertEqual(self.label_positions()["cloud"], (960.0, 2000.0))
+
+    def test_insert_position_does_not_drag_the_label(self):
+        """A label of a block inserted far away still follows its own origin."""
+        self.doc.add_block(
+            self.make_block("rotated", (700.0, 2000.0, 0.0), (700.0, 2000.0, 0.0))
+        )
+
+        self.doc.plot()
+
+        self.assertEqual(self.label_positions()["rotated"], (660.0, 2000.0))
+
+    def test_each_origin_gets_its_own_stacked_column(self):
+        cloud_origin = (1000.0, 2000.0, 0.0)
+        rotated_origin = (700.0, 2000.0, 0.0)
+        self.doc.add_block(self.make_block("cloud_a", (0.0, 0.0, 0.0), cloud_origin))
+        self.doc.add_block(self.make_block("rotated_a", rotated_origin, rotated_origin))
+        self.doc.add_block(self.make_block("cloud_b", (0.0, 0.0, 0.0), cloud_origin))
+        self.doc.add_block(self.make_block("rotated_b", rotated_origin, rotated_origin))
+
+        self.doc.plot()
+        labels = self.label_positions()
+
+        # Two columns, each stacking downwards by the text spacing
+        self.assertEqual(labels["cloud_a"], (960.0, 2000.0))
+        self.assertEqual(labels["cloud_b"], (960.0, 2000.0 - self.doc.text_spacing))
+        self.assertEqual(labels["rotated_a"], (660.0, 2000.0))
+        self.assertEqual(labels["rotated_b"], (660.0, 2000.0 - self.doc.text_spacing))
+
+    def test_label_origin_defaults_to_world_origin(self):
+        self.doc.add_block(self.make_block("plain", (500.0, 500.0, 0.0), None))
+
+        self.doc.plot()
+
+        self.assertEqual(self.label_positions()["plain"], (-40.0, 0.0))
+
+    def test_labels_are_not_stored_inside_the_block_definition(self):
+        self.doc.add_block(
+            self.make_block("rotated", (700.0, 2000.0, 0.0), (700.0, 2000.0, 0.0))
+        )
+
+        self.doc.plot()
+
+        block_definition = self.doc.dxf_doc.blocks["Block_rotated"]
+        texts = [e for e in block_definition if e.dxftype() == "TEXT"]
+        self.assertEqual(texts, [])
 
 
 if __name__ == "__main__":

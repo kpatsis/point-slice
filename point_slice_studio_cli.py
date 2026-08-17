@@ -86,6 +86,17 @@ Examples:
     )
 
     parser.add_argument(
+        "--anchor-z",
+        type=float,
+        default=0.0,
+        help=(
+            "Z coordinate (elevation base) of the imported point cloud. Rotated"
+            " XZ/YZ slices are made relative to it, so a point cloud with a large"
+            " elevation offset still lands next to the anchor (default: 0.0)"
+        ),
+    )
+
+    parser.add_argument(
         "--xz-rotated-x-offset",
         type=float,
         default=-300.0,
@@ -103,14 +114,18 @@ Examples:
         "--label-x",
         type=float,
         default=-40.0,
-        help="X position for label start (default: -40.0)",
+        help=(
+            "X offset of the labels from the geometry they name: from the anchor"
+            " for the point cloud, and from each rotated view for its own labels"
+            " (default: -40.0)"
+        ),
     )
 
     parser.add_argument(
         "--label-y",
         type=float,
         default=0.0,
-        help="Y position for label start (default: 0.0)",
+        help="Y offset of the first label, further labels go below (default: 0.0)",
     )
 
     parser.add_argument(
@@ -136,7 +151,7 @@ Examples:
             return
 
     label_position = (args.label_x, args.label_y)
-    anchor_point = (args.anchor_x, args.anchor_y)
+    anchor_point = (args.anchor_x, args.anchor_y, args.anchor_z)
 
     create_dxf_from_csv_directory(
         args.input_directory,
