@@ -5,7 +5,6 @@ from ps_core.points_slice import (
     PointsSlice,
     SliceType,
     rotate_slice_to_xy,
-    translate_slice,
 )
 from ps_core.parse_file import (
     detect_slice_type_from_data,
@@ -20,7 +19,6 @@ __all__ = [
     "PointsSlice",
     "SliceType",
     "rotate_slice_to_xy",
-    "translate_slice",
     "detect_slice_type_from_data",
     "parse_csv_file",
     "parse_directory",
