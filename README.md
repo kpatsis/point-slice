@@ -193,6 +193,8 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
   
 - `--threshold FLOAT`: Slice detection threshold (max allowed variation of the smallest axis)
   - Default: `0.050` (smaller is stricter; larger is more tolerant)
+- `--thickness FLOAT`: Target slice thickness. Keeps only the points within a band of this thickness, centred on the midpoint of the slice's range along its constant axis (Z for XY, Y for XZ, X for YZ). Slices already thinner than this, and UNKNOWN slices, are left unchanged.
+  - Default: off
 
 ### Features
 
@@ -225,6 +227,9 @@ python point_slice_studio_cli.py path/to/csv/files output.dxf --anchor-x 0 --anc
 
 # Adjust slice detection threshold (e.g., stricter)
 python point_slice_studio_cli.py path/to/csv/files output.dxf --threshold 0.005
+
+# Reduce every slice to 1 cm thickness (e.g. +0.93..+0.98 becomes +0.95..+0.96)
+python point_slice_studio_cli.py path/to/csv/files output.dxf --thickness 0.01
 ```
 
 ### Output
