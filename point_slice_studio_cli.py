@@ -124,7 +124,23 @@ Examples:
         ),
     )
 
+    parser.add_argument(
+        "--thickness",
+        type=float,
+        default=None,
+        help=(
+            "Target slice thickness. Keeps only points within a band of this"
+            " thickness centred on the midpoint of each slice's constant axis."
+            " Thinner slices and UNKNOWN slices are left unchanged."
+            " Default: off"
+        ),
+    )
+
     args = parser.parse_args()
+
+    if args.thickness is not None and args.thickness <= 0:
+        print(f"❌ Error: Invalid thickness: {args.thickness}. Must be positive.")
+        return
 
     # Validate colors if provided
     if args.colors:
@@ -147,6 +163,7 @@ Examples:
         colors=args.colors,
         label_position=label_position,
         threshold=args.threshold,
+        thickness=args.thickness,
     )
 
 

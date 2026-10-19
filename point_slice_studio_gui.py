@@ -103,8 +103,8 @@ class PointSliceStudioGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Point Slice Studio")
-        self.root.geometry("800x700")
-        self.root.minsize(700, 600)
+        self.root.geometry("800x800")
+        self.root.minsize(700, 700)
 
         # Set the window icon using the same icon as the application
         try:
@@ -136,6 +136,7 @@ class PointSliceStudioGUI:
         self.anchor_y = tk.DoubleVar(value=0.0)
         self.xz_rotated_x_offset = tk.DoubleVar(value=-300.0)
         self.yz_rotated_x_offset = tk.DoubleVar(value=-200.0)
+        self.thickness_text = tk.StringVar(value="")
 
         self.processing = False
 
@@ -305,6 +306,31 @@ class PointSliceStudioGUI:
 
         row += 1
 
+        # Slice Thickness Section
+        thickness_wrapper = ttk.Frame(main_frame)
+        thickness_wrapper.grid(row=row, column=0, columnspan=3, sticky=tk.W, pady=10)
+        thickness_frame = ttk.LabelFrame(
+            thickness_wrapper, text="Slice thickness", padding="5"
+        )
+        thickness_frame.pack(anchor=tk.W, fill=tk.X)
+        thickness_inner = ttk.Frame(thickness_frame)
+        thickness_inner.pack(anchor=tk.W)
+        ttk.Label(thickness_inner, text="Thickness:").pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Entry(thickness_inner, textvariable=self.thickness_text, width=12).pack(
+            side=tk.LEFT
+        )
+        ttk.Label(
+            thickness_frame,
+            text=(
+                "Leave empty to keep slices as they are. Thinner and UNKNOWN "
+                "slices are left unchanged (CLI: --thickness)."
+            ),
+            font=("TkDefaultFont", 8),
+            foreground="gray",
+        ).pack(anchor=tk.W, pady=(6, 0))
+
+        row += 1
+
         # Process Button
         self.process_button = ttk.Button(
             main_frame,
@@ -423,7 +449,32 @@ class PointSliceStudioGUI:
                 )
                 return False
 
+        # Validate thickness
+        thickness_str = self.thickness_text.get().strip()
+        if thickness_str:
+            try:
+                thickness = float(thickness_str)
+            except ValueError:
+                messagebox.showerror("Error", "Thickness must be a number (e.g., 0.01)")
+                return False
+            if thickness <= 0:
+                messagebox.showerror(
+                    "Error", f"Invalid thickness: {thickness}\nMust be positive."
+                )
+                return False
+
         return True
+
+    def parse_thickness(self) -> Optional[float]:
+        """Parse thickness from the text input; None means no filter."""
+        thickness_str = self.thickness_text.get().strip()
+        if not thickness_str:
+            return None
+
+        try:
+            return float(thickness_str)
+        except ValueError:
+            return None
 
     def parse_colors(self) -> Optional[List[int]]:
         """Parse colors from the text input."""
@@ -455,6 +506,7 @@ class PointSliceStudioGUI:
         anchor_point = (self.anchor_x.get(), self.anchor_y.get())
         xz_off = self.xz_rotated_x_offset.get()
         yz_off = self.yz_rotated_x_offset.get()
+        thickness = self.parse_thickness()
 
         self._redirector = RedirectText(self.log_text)
         self._redirector.start_polling()
@@ -472,6 +524,7 @@ class PointSliceStudioGUI:
                 anchor_point,
                 xz_off,
                 yz_off,
+                thickness,
             ),
             daemon=True,
         )
@@ -486,6 +539,7 @@ class PointSliceStudioGUI:
         anchor_point,
         xz_rotated_x_offset,
         yz_rotated_x_offset,
+        thickness,
     ):
         """Run the actual processing in a background thread.
 
@@ -502,6 +556,7 @@ class PointSliceStudioGUI:
                 yz_rotated_x_offset=yz_rotated_x_offset,
                 colors=colors,
                 label_position=label_position,
+                thickness=thickness,
             )
 
             self.root.after(

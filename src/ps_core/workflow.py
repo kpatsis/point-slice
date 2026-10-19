@@ -22,11 +22,15 @@ Orchestrates parsing CSV point cloud files and writing them to a DXF document.
 
 import os
 import time
-from typing import List
+from typing import List, Optional
 
 from ps_core.dxf_document import DXFDocument, Block
 from ps_core.parse_file import parse_directory
-from ps_core.points_slice import SliceType, rotate_slice_to_xy
+from ps_core.points_slice import (
+    SliceType,
+    filter_slice_thickness,
+    rotate_slice_to_xy,
+)
 
 
 def create_dxf_from_csv_directory(
@@ -38,6 +42,7 @@ def create_dxf_from_csv_directory(
     colors: List[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     label_position: tuple[float, float] = (-40.0, 0.0),
     threshold: float = 0.050,
+    thickness: Optional[float] = None,
 ) -> None:
     """
     Create a DXF file from CSV files in a directory.
@@ -51,6 +56,7 @@ def create_dxf_from_csv_directory(
         colors: List of AutoCAD color indices to use
         label_position: Starting position for labels
         threshold: Threshold for slice-type detection
+        thickness: Optional target slice thickness; None leaves slices as parsed
     """
     execution_start_time = time.perf_counter()
 
@@ -83,6 +89,18 @@ def create_dxf_from_csv_directory(
     print(
         f"✅ Successfully parsed {len(points_slices)} CSV files in {parsing_duration:.3f} seconds"
     )
+
+    if thickness is not None:
+        print(f"📏 Applying slice thickness filter: {thickness}")
+        filtered_slices = []
+        for points_slice in points_slices:
+            filtered_slice = filter_slice_thickness(points_slice, thickness)
+            if len(filtered_slice.points) != len(points_slice.points):
+                print(
+                    f"   • {points_slice.name}: kept {len(filtered_slice.points)} of {len(points_slice.points)} points"
+                )
+            filtered_slices.append(filtered_slice)
+        points_slices = filtered_slices
 
     doc = DXFDocument(colors=colors, label_start_position=label_position)
     print(f"📋 Created initial DXFDocument")
