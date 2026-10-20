@@ -32,12 +32,13 @@ If no arguments are provided, defaults to:
 """
 
 import argparse
+import sys
 
 from ps_core.workflow import create_dxf_from_csv_directory
 
 
-def main():
-    """Main function with command line argument parsing."""
+def main() -> int:
+    """Main function with command line argument parsing; returns the exit code."""
     parser = argparse.ArgumentParser(
         description="Create DXF files from CSV point cloud data",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -140,7 +141,7 @@ Examples:
 
     if args.thickness is not None and args.thickness <= 0:
         print(f"❌ Error: Invalid thickness: {args.thickness}. Must be positive.")
-        return
+        return 1
 
     # Validate colors if provided
     if args.colors:
@@ -149,12 +150,12 @@ Examples:
             print(
                 f"❌ Error: Invalid color indices: {invalid_colors}. Colors must be between 1-256."
             )
-            return
+            return 1
 
     label_position = (args.label_x, args.label_y)
     anchor_point = (args.anchor_x, args.anchor_y)
 
-    create_dxf_from_csv_directory(
+    succeeded = create_dxf_from_csv_directory(
         args.input_directory,
         args.output_file,
         anchor_point=anchor_point,
@@ -165,7 +166,8 @@ Examples:
         threshold=args.threshold,
         thickness=args.thickness,
     )
+    return 0 if succeeded else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

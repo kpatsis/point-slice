@@ -548,7 +548,7 @@ class PointSliceStudioGUI:
         thread via ``after`` callbacks.
         """
         try:
-            create_dxf_from_csv_directory(
+            succeeded = create_dxf_from_csv_directory(
                 input_dir,
                 output_file,
                 anchor_point=anchor_point,
@@ -559,13 +559,22 @@ class PointSliceStudioGUI:
                 thickness=thickness,
             )
 
-            self.root.after(
-                0,
-                lambda: messagebox.showinfo(
-                    "Success",
-                    f"DXF file created successfully!\n\nOutput: {output_file}",
-                ),
-            )
+            if succeeded:
+                self.root.after(
+                    0,
+                    lambda: messagebox.showinfo(
+                        "Success",
+                        f"DXF file created successfully!\n\nOutput: {output_file}",
+                    ),
+                )
+            else:
+                self.root.after(
+                    0,
+                    lambda: messagebox.showerror(
+                        "Error",
+                        "DXF file was not created.\n\nSee the log for details.",
+                    ),
+                )
 
         except Exception as e:
             error_msg = f"An error occurred during processing:\n\n{str(e)}"
