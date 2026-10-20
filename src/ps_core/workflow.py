@@ -43,7 +43,7 @@ def create_dxf_from_csv_directory(
     label_position: tuple[float, float] = (-40.0, 0.0),
     threshold: float = 0.050,
     thickness: Optional[float] = None,
-) -> None:
+) -> bool:
     """
     Create a DXF file from CSV files in a directory.
 
@@ -57,6 +57,10 @@ def create_dxf_from_csv_directory(
         label_position: Starting position for labels
         threshold: Threshold for slice-type detection
         thickness: Optional target slice thickness; None leaves slices as parsed
+
+    Returns:
+        True if the DXF file was written, False if any step failed (the
+        reason is printed)
     """
     execution_start_time = time.perf_counter()
 
@@ -66,11 +70,11 @@ def create_dxf_from_csv_directory(
 
     if not os.path.exists(input_directory):
         print(f"❌ Error: Input directory '{input_directory}' does not exist")
-        return
+        return False
 
     if not os.path.isdir(input_directory):
         print(f"❌ Error: '{input_directory}' is not a directory")
-        return
+        return False
 
     print(f"📂 Parsing CSV files from: {input_directory}")
     parsing_start_time = time.perf_counter()
@@ -78,13 +82,13 @@ def create_dxf_from_csv_directory(
         points_slices = parse_directory(input_directory, threshold=threshold)
     except Exception as e:
         print(f"❌ Error parsing CSV files: {e}")
-        return
+        return False
     parsing_end_time = time.perf_counter()
     parsing_duration = parsing_end_time - parsing_start_time
 
     if not points_slices:
         print("❌ Error: No valid CSV files found or parsed")
-        return
+        return False
 
     print(
         f"✅ Successfully parsed {len(points_slices)} CSV files in {parsing_duration:.3f} seconds"
@@ -159,7 +163,7 @@ def create_dxf_from_csv_directory(
         print(f"✅ Successfully plotted all blocks in {plotting_duration:.3f} seconds")
     except Exception as e:
         print(f"❌ Error plotting blocks: {e}")
-        return
+        return False
 
     print(f"💾 Saving DXF file to: {output_file}")
     saving_start_time = time.perf_counter()
@@ -172,11 +176,11 @@ def create_dxf_from_csv_directory(
             print(f"✅ DXF file saved successfully in {saving_duration:.3f} seconds")
         else:
             print("❌ Error: DXF file was not created")
-            return
+            return False
 
     except Exception as e:
         print(f"❌ Error saving DXF file: {e}")
-        return
+        return False
 
     execution_end_time = time.perf_counter()
     total_execution_time = execution_end_time - execution_start_time
@@ -198,3 +202,4 @@ def create_dxf_from_csv_directory(
 
     print("=" * 80)
     print("🎉 DXF creation completed successfully!")
+    return True
