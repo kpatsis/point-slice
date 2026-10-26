@@ -24,7 +24,7 @@ containing 3D point coordinates and create PointsSlice objects.
 import os
 import random
 from typing import Optional, List
-from ps_core.points_slice import Point3D, PointsSlice, SliceType
+from ps_core.points_slice import Point3D, PointsSlice, SliceType, format_level
 
 
 def detect_slice_type_from_data(
@@ -150,6 +150,10 @@ def parse_csv_file(
 
     # Determine metadata
     slice_type = detect_slice_type_from_data(points, threshold=threshold)
+
+    # XY slices carry their level in the name, e.g. "01_Of_Low+0.96"
+    if slice_type == SliceType.XY:
+        name += format_level([p.z for p in points])
 
     return PointsSlice(points=points, name=name, slice_type=slice_type)
 

@@ -111,7 +111,7 @@ def create_dxf_from_csv_directory(
     print(f"🏷️  Label start position: {label_position}")
 
     for points_slice in points_slices:
-        layer_name = f"Layer_{points_slice.name}"
+        layer_name = f"L_{points_slice.name}"
 
         if (
             points_slice.slice_type == SliceType.XZ

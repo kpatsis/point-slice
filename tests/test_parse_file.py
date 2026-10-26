@@ -104,9 +104,21 @@ class TestParseCSVFile(unittest.TestCase):
         result = parse_csv_file(self.test_file)
 
         self.assertIsInstance(result, PointsSlice)
-        self.assertEqual(result.name, "test_data")
+        self.assertEqual(result.name, "test_data+5.00")  # XY slices carry level
         self.assertEqual(len(result.points), 100)  # 10x10 grid
         self.assertEqual(result.slice_type, SliceType.XY)
+
+    def test_non_xy_name_has_no_level(self):
+        """Only XY slices get the level appended to their name."""
+        xz_file = os.path.join(self.temp_dir, "wall.csv")
+        with open(xz_file, "w") as f:
+            for i in range(10):
+                f.write(f"{i}.0 5.0 {i * 2}.0\n")
+
+        result = parse_csv_file(xz_file)
+
+        self.assertEqual(result.name, "wall")
+        self.assertEqual(result.slice_type, SliceType.XZ)
 
     def test_parse_with_max_points(self):
         """Test parsing with max_points limit."""

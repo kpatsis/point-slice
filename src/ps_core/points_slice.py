@@ -22,6 +22,7 @@ along with their associated metadata such as name, color, and slice type.
 """
 
 from dataclasses import dataclass
+from decimal import Decimal, ROUND_HALF_UP
 from typing import List
 from enum import Enum
 
@@ -158,3 +159,25 @@ def filter_slice_thickness(slice_obj: PointsSlice, thickness: float) -> PointsSl
     return PointsSlice(
         points=filtered_points, name=slice_obj.name, slice_type=slice_obj.slice_type
     )
+
+
+def format_level(values: List[float]) -> str:
+    """
+    Format the level of a set of values as a signed 2-decimal string.
+
+    The level is the midpoint of the values' range, rounded half-up, so
+    values from +0.93 to +0.98 give "+0.96".
+
+    Args:
+        values: Non-empty list of values along the slice's constant axis
+
+    Returns:
+        The level, e.g. "+0.96" or "-8.35"
+    """
+    midpoint = (min(values) + max(values)) / 2
+    # Go through a 9-decimal string to drop float noise (0.955 is stored as
+    # 0.9549999...) before rounding half-up
+    level = Decimal(f"{midpoint:.9f}").quantize(Decimal("0.01"), ROUND_HALF_UP)
+    if level == 0:
+        level = abs(level)  # Avoid "-0.00"
+    return f"{level:+}"

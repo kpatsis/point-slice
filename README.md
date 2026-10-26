@@ -236,6 +236,8 @@ python point_slice_studio_cli.py path/to/csv/files output.dxf --thickness 0.01
 
 The script generates:
 - DXF file with organized blocks and layers
+- One layer (`L_<name>`) and block (`Block_<name>`) per slice, with a text label holding the slice name
+- Horizontal (XY) slices have their level appended to the name, so it shows in the layer, block and label: the midpoint of the Z range, rounded half-up to 2 decimals (e.g. `L_01_Of_Low+0.96` for a slice from +0.93 to +0.98)
 - Progress reporting during execution
 - Summary with file statistics
 - File size and location information
