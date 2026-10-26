@@ -2,7 +2,8 @@
 """
 Unit tests for the workflow module.
 
-Tests cover the success/failure result of create_dxf_from_csv_directory.
+Tests cover the success/failure result of create_dxf_from_csv_directory
+and the slice labels it writes.
 """
 
 import contextlib
@@ -11,6 +12,8 @@ import os
 import shutil
 import tempfile
 import unittest
+
+import ezdxf
 
 from ps_core.workflow import create_dxf_from_csv_directory
 
@@ -74,6 +77,40 @@ class TestCreateDxfFromCsvDirectory(unittest.TestCase):
 
         self.assertFalse(result)
         self.assertIn("Error saving DXF file", output)
+
+    def read_names(self):
+        """Return the (layer, block, label) names of the written DXF file."""
+        doc = ezdxf.readfile(self.output_file)
+        layers = {layer.dxf.name for layer in doc.layers if layer.dxf.name[:2] == "L_"}
+        blocks = {block.name for block in doc.blocks if block.name[:6] == "Block_"}
+        labels = {text.dxf.text for block in doc.blocks for text in block.query("TEXT")}
+        return layers, blocks, labels
+
+    def test_xy_names_include_level(self):
+        """XY slice layer, block and label names are suffixed with the level."""
+        self.run_workflow(self.input_dir, self.output_file)
+
+        layers, blocks, labels = self.read_names()
+
+        self.assertEqual(layers, {"L_slice+1.00"})
+        self.assertEqual(blocks, {"Block_slice+1.00"})
+        self.assertEqual(labels, {"slice+1.00"})
+
+    def test_xz_names_have_no_level(self):
+        """XZ slices, and their rotated copies, keep the plain name."""
+        with open(os.path.join(self.input_dir, "wall.csv"), "w") as f:
+            for i in range(10):
+                f.write(f"{i}.0 5.0 {i * 2}.0\n")
+
+        self.run_workflow(self.input_dir, self.output_file)
+
+        layers, blocks, labels = self.read_names()
+
+        self.assertEqual(layers, {"L_slice+1.00", "L_wall"})
+        self.assertEqual(
+            blocks, {"Block_slice+1.00", "Block_wall", "Block_wall_rotated"}
+        )
+        self.assertEqual(labels, {"slice+1.00", "wall", "wall_rotated"})
 
 
 if __name__ == "__main__":

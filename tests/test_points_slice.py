@@ -2,7 +2,7 @@
 """
 Unit tests for the points_slice module.
 
-Tests cover the slice thickness filter.
+Tests cover the slice thickness filter and the XY slice level label.
 """
 
 import unittest
@@ -12,6 +12,7 @@ from ps_core.points_slice import (
     PointsSlice,
     SliceType,
     filter_slice_thickness,
+    format_level,
 )
 
 
@@ -98,6 +99,32 @@ class TestFilterSliceThickness(unittest.TestCase):
             filter_slice_thickness(slice_obj, 0.0)
         with self.assertRaises(ValueError):
             filter_slice_thickness(slice_obj, -0.01)
+
+
+class TestFormatLevel(unittest.TestCase):
+    """Test the format_level function."""
+
+    def test_issue_example(self):
+        """Values from +0.93 to +0.98 have midpoint 0.955, rounded half-up."""
+        self.assertEqual(format_level([0.93, 0.98]), "+0.96")
+
+    def test_uses_midpoint_not_mean(self):
+        """The level is the range midpoint, not the mean of the values."""
+        self.assertEqual(format_level([0.0] * 10 + [0.1]), "+0.05")
+
+    def test_rounds_half_up_despite_float_noise(self):
+        """Midpoints stored just below a .xx5 boundary still round up."""
+        # (2.135 + 2.145) / 2 is 2.1399999999999997 as a float
+        self.assertEqual(format_level([2.135, 2.145]), "+2.14")
+        self.assertEqual(format_level([1.005]), "+1.01")
+
+    def test_negative_level(self):
+        """Negative levels carry a minus sign."""
+        self.assertEqual(format_level([-8.3542, -8.3402]), "-8.35")
+
+    def test_zero_level_has_plus_sign(self):
+        """A level that rounds to zero is "+0.00", never "-0.00"."""
+        self.assertEqual(format_level([-0.001]), "+0.00")
 
 
 if __name__ == "__main__":
