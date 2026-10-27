@@ -3,9 +3,17 @@
 import os
 import unittest
 
-from ps_core.dxf_document import DXFDocument, Block
+import ezdxf
+
+from ps_core.dxf_document import DXFDocument, Block, XDATA_APPID
 from ps_core.parse_file import parse_directory
-from ps_core.points_slice import SliceType, rotate_slice_to_xy
+from ps_core.points_slice import (
+    Point3D,
+    PointsSlice,
+    SectionLine,
+    SliceType,
+    rotate_slice_to_xy,
+)
 
 
 class TestDXFDocument(unittest.TestCase):
@@ -96,6 +104,41 @@ class TestDXFDocument(unittest.TestCase):
         print(f"   • Output file: {self.output_file}")
         print(f"   • File size: {file_size} bytes")
         print("=" * 80)
+
+    def test_section_lines_replace_points(self):
+        """A block with section lines and no points writes tagged LWPOLYLINEs."""
+        points = [Point3D(float(i), 5.0, float(i)) for i in range(4)]
+        points_slice = PointsSlice(points=points, name="wall", slice_type=SliceType.XZ)
+        line = SectionLine(Point3D(0.0, 5.0, 1.5), Point3D(3.0, 5.0, 1.5))
+        doc = DXFDocument()
+        doc.add_block(
+            Block(
+                points_slice=points_slice,
+                layer_name="L_wall",
+                block_name="Block_wall",
+                section_lines=[line],
+                include_points=False,
+            )
+        )
+
+        doc.plot()
+        doc.save(self.output_file)
+
+        block = ezdxf.readfile(self.output_file).blocks.get("Block_wall")
+        polylines = block.query("LWPOLYLINE")
+        self.assertEqual(len(polylines), 1)
+        self.assertEqual(len(block.query("POINT")), 0)
+        self.assertEqual([text.dxf.text for text in block.query("TEXT")], ["wall"])
+
+        polyline = polylines[0]
+        self.assertEqual(polyline.dxf.layer, "L_wall")
+        self.assertAlmostEqual(polyline.dxf.elevation, 1.5)
+        self.assertEqual(
+            [(v[0], v[1]) for v in polyline.get_points(format="xy")],
+            [(0.0, 5.0), (3.0, 5.0)],
+        )
+        xdata = [(tag.code, tag.value) for tag in polyline.get_xdata(XDATA_APPID)]
+        self.assertEqual(xdata, [(1000, "wall"), (1070, 0)])
 
 
 if __name__ == "__main__":

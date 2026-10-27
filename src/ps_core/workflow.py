@@ -30,6 +30,7 @@ from ps_core.points_slice import (
     SliceType,
     filter_slice_thickness,
     rotate_slice_to_xy,
+    section_lines as compute_section_lines,
 )
 
 
@@ -43,6 +44,8 @@ def create_dxf_from_csv_directory(
     label_position: tuple[float, float] = (-40.0, 0.0),
     threshold: float = 0.050,
     thickness: Optional[float] = None,
+    section_lines: bool = False,
+    section_line_gap: float = 1.0,
 ) -> bool:
     """
     Create a DXF file from CSV files in a directory.
@@ -57,6 +60,11 @@ def create_dxf_from_csv_directory(
         label_position: Starting position for labels
         threshold: Threshold for slice-type detection
         thickness: Optional target slice thickness; None leaves slices as parsed
+        section_lines: Experimental. In the main drawing, replace the point cloud of
+            each vertical (XZ/YZ) slice with its plan-view line at mid-height.
+            Rotated blocks are unchanged.
+        section_line_gap: Split a section line where consecutive points are farther
+            apart than this (drawing units)
 
     Returns:
         True if the DXF file was written, False if any step failed (the
@@ -106,9 +114,17 @@ def create_dxf_from_csv_directory(
             filtered_slices.append(filtered_slice)
         points_slices = filtered_slices
 
+    if section_lines:
+        print(
+            f"📐 Section lines enabled for XZ/YZ slices in the main drawing"
+            f" (gap {section_line_gap})"
+        )
+
     doc = DXFDocument(colors=colors, label_start_position=label_position)
     print(f"📋 Created initial DXFDocument")
     print(f"🏷️  Label start position: {label_position}")
+
+    total_section_lines = 0
 
     for points_slice in points_slices:
         layer_name = f"L_{points_slice.name}"
@@ -140,17 +156,38 @@ def create_dxf_from_csv_directory(
                 f"➕ Added rotated block '{points_slice_rotated.name}' with {len(points_slice_rotated.points)} points ({points_slice_rotated.slice_type.value})"
             )
 
+        lines = []
+        include_points = True
+        if section_lines and points_slice.slice_type in (SliceType.XZ, SliceType.YZ):
+            try:
+                lines = compute_section_lines(points_slice, section_line_gap)
+            except ValueError as e:
+                print(
+                    f"❌ Error computing section lines for '{points_slice.name}': {e}"
+                )
+                return False
+            include_points = False
+            total_section_lines += len(lines)
+
         block = Block(
             points_slice=points_slice,
             layer_name=layer_name,
             block_name=f"Block_{points_slice.name}",
             insert_position=(0.0, 0.0, 0.0),
+            section_lines=lines,
+            include_points=include_points,
         )
 
         doc.add_block(block)
-        print(
-            f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})"
-        )
+        if include_points:
+            print(
+                f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})"
+            )
+        else:
+            print(
+                f"➕ Added block '{points_slice.name}' with {len(lines)} section line(s)"
+                f" replacing {len(points_slice.points)} points ({points_slice.slice_type.value})"
+            )
 
     print(f"📦 Total blocks in document: {len(doc.blocks)}")
 
@@ -188,6 +225,8 @@ def create_dxf_from_csv_directory(
     print("\n📊 CREATION SUMMARY:")
     print(f"   • CSV files parsed: {len(points_slices)}")
     print(f"   • Blocks created: {len(doc.blocks)}")
+    if section_lines:
+        print(f"   • Section lines: {total_section_lines}")
     print(f"   • Output file: {output_file}")
 
     if os.path.exists(output_file):
