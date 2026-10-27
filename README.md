@@ -195,6 +195,10 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
   - Default: `0.050` (smaller is stricter; larger is more tolerant)
 - `--thickness FLOAT`: Target slice thickness. Keeps only the points within a band of this thickness, centred on the midpoint of the slice's range along its constant axis (Z for XY, Y for XZ, X for YZ). Slices already thinner than this, and UNKNOWN slices, are left unchanged.
   - Default: off
+- `--section-lines` (experimental): In the main drawing, replace the point cloud of each vertical (XZ/YZ) slice with the line it projects onto in plan view, placed at the midpoint of the slice's Z range. The rotated blocks keep their points.
+  - Default: off
+- `--section-line-gap FLOAT` (experimental): Split a section line where consecutive points along it are farther apart than this, so empty stretches stay empty. Drawing units.
+  - Default: `1.0`
 
 ### Features
 
@@ -204,6 +208,7 @@ python point_slice_studio_cli.py [input_directory] [output_file] [options]
   - XZ slices: (100, 0, 0) - rotated to XY plane
   - YZ slices: (200, 0, 0) - rotated to XY plane
 - **Color-coded layers**: Each point slice gets its own layer with unique colors
+- **Section lines (experimental)**: Vertical slices can be drawn as plan-view lines instead of point clouds in the main drawing
 - **Progress reporting**: Real-time feedback during processing
 - **Error handling**: Comprehensive validation and error messages
 
@@ -230,6 +235,9 @@ python point_slice_studio_cli.py path/to/csv/files output.dxf --threshold 0.005
 
 # Reduce every slice to 1 cm thickness (e.g. +0.93..+0.98 becomes +0.95..+0.96)
 python point_slice_studio_cli.py path/to/csv/files output.dxf --thickness 0.01
+
+# Draw vertical slices as plan-view lines in the main drawing, split at gaps over 0.5
+python point_slice_studio_cli.py path/to/csv/files output.dxf --section-lines --section-line-gap 0.5
 ```
 
 ### Output
@@ -238,6 +246,7 @@ The script generates:
 - DXF file with organized blocks and layers
 - One layer (`L_<name>`) and block (`Block_<name>`) per slice, with a text label holding the slice name
 - Horizontal (XY) slices have their level appended to the name, so it shows in the layer, block and label: the midpoint of the Z range, rounded half-up to 2 decimals (e.g. `L_01_Of_Low+0.96` for a slice from +0.93 to +0.98)
+- With `--section-lines`, `Block_<name>` of each vertical (XZ/YZ) slice holds `LWPOLYLINE` segments on layer `L_<name>` instead of points: one line per continuous stretch, at the midpoint of the slice's constant axis and of its Z range. Each line carries the slice name as extended data under the application id `POINT_SLICE`. `Block_<name>_rotated` is unchanged
 - Progress reporting during execution
 - Summary with file statistics
 - File size and location information

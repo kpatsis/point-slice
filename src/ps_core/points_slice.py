@@ -161,6 +161,77 @@ def filter_slice_thickness(slice_obj: PointsSlice, thickness: float) -> PointsSl
     )
 
 
+@dataclass
+class SectionLine:
+    """A plan-view segment of a vertical slice, in world coordinates."""
+
+    start: Point3D
+    end: Point3D
+
+
+def section_lines(slice_obj: PointsSlice, max_gap: float) -> List[SectionLine]:
+    """
+    Reduce a vertical slice to the line(s) it projects onto in plan view.
+
+    Seen from above, an XZ slice lies on the line y = constant and a YZ
+    slice on the line x = constant. The constant is the midpoint of the
+    slice's range along that axis, and the lines sit at the midpoint of
+    the Z range. Points are sorted along the line and a new segment is
+    started wherever two consecutive points are more than ``max_gap``
+    apart, so empty stretches stay empty. Segments made of a single point
+    are dropped.
+
+    XY and UNKNOWN slices, and empty slices, give no lines.
+
+    Args:
+        slice_obj: The PointsSlice to reduce
+        max_gap: Largest gap along the line that is still bridged (must be positive)
+
+    Returns:
+        The plan-view segments, in order along the line
+
+    Raises:
+        ValueError: If max_gap is not positive
+    """
+    if max_gap <= 0:
+        raise ValueError(f"Section line gap must be positive, got {max_gap}")
+
+    if slice_obj.slice_type == SliceType.XZ:
+        running_axis, constant_axis = "x", "y"
+    elif slice_obj.slice_type == SliceType.YZ:
+        running_axis, constant_axis = "y", "x"
+    else:  # XY or UNKNOWN
+        return []
+
+    if not slice_obj.points:
+        return []
+
+    constant_values = [getattr(p, constant_axis) for p in slice_obj.points]
+    constant = (min(constant_values) + max(constant_values)) / 2
+    z_values = [p.z for p in slice_obj.points]
+    elevation = (min(z_values) + max(z_values)) / 2
+
+    def make_point(running: float) -> Point3D:
+        coords = {running_axis: running, constant_axis: constant, "z": elevation}
+        return Point3D(coords["x"], coords["y"], coords["z"])
+
+    running_values = sorted(getattr(p, running_axis) for p in slice_obj.points)
+    lines: List[SectionLine] = []
+    segment_start = segment_end = running_values[0]
+    for value in running_values[1:]:
+        if value - segment_end > max_gap:
+            if segment_end > segment_start:
+                lines.append(
+                    SectionLine(make_point(segment_start), make_point(segment_end))
+                )
+            segment_start = value
+        segment_end = value
+    if segment_end > segment_start:
+        lines.append(SectionLine(make_point(segment_start), make_point(segment_end)))
+
+    return lines
+
+
 def format_level(values: List[float]) -> str:
     """
     Format the level of a set of values as a signed 2-decimal string.
