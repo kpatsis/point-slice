@@ -103,8 +103,8 @@ class PointSliceStudioGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Point Slice Studio")
-        self.root.geometry("800x800")
-        self.root.minsize(700, 700)
+        self.root.geometry("800x880")
+        self.root.minsize(700, 780)
 
         # Set the window icon using the same icon as the application
         try:
@@ -137,6 +137,8 @@ class PointSliceStudioGUI:
         self.xz_rotated_x_offset = tk.DoubleVar(value=-300.0)
         self.yz_rotated_x_offset = tk.DoubleVar(value=-200.0)
         self.thickness_text = tk.StringVar(value="")
+        self.section_lines = tk.BooleanVar(value=False)
+        self.section_line_gap_text = tk.StringVar(value="1.0")
 
         self.processing = False
 
@@ -331,6 +333,37 @@ class PointSliceStudioGUI:
 
         row += 1
 
+        # Section Lines Section (experimental)
+        section_wrapper = ttk.Frame(main_frame)
+        section_wrapper.grid(row=row, column=0, columnspan=3, sticky=tk.W, pady=10)
+        section_frame = ttk.LabelFrame(
+            section_wrapper, text="Section lines (experimental)", padding="5"
+        )
+        section_frame.pack(anchor=tk.W, fill=tk.X)
+        ttk.Checkbutton(
+            section_frame,
+            text="Replace XZ/YZ point clouds with lines in the main drawing",
+            variable=self.section_lines,
+        ).pack(anchor=tk.W)
+        section_inner = ttk.Frame(section_frame)
+        section_inner.pack(anchor=tk.W, pady=(4, 0))
+        ttk.Label(section_inner, text="Gap:").pack(side=tk.LEFT, padx=(0, 4))
+        ttk.Entry(
+            section_inner, textvariable=self.section_line_gap_text, width=12
+        ).pack(side=tk.LEFT)
+        ttk.Label(
+            section_frame,
+            text=(
+                "Each vertical slice becomes its plan-view line at mid-height, split "
+                "where points are farther apart than the gap. Rotated blocks are "
+                "unchanged (CLI: --section-lines / --section-line-gap)."
+            ),
+            font=("TkDefaultFont", 8),
+            foreground="gray",
+        ).pack(anchor=tk.W, pady=(6, 0))
+
+        row += 1
+
         # Process Button
         self.process_button = ttk.Button(
             main_frame,
@@ -463,7 +496,28 @@ class PointSliceStudioGUI:
                 )
                 return False
 
+        # Validate section line gap
+        if self.section_lines.get():
+            gap = self.parse_section_line_gap()
+            if gap is None:
+                messagebox.showerror(
+                    "Error", "Section line gap must be a number (e.g., 1.0)"
+                )
+                return False
+            if gap <= 0:
+                messagebox.showerror(
+                    "Error", f"Invalid section line gap: {gap}\nMust be positive."
+                )
+                return False
+
         return True
+
+    def parse_section_line_gap(self) -> Optional[float]:
+        """Parse the section line gap from the text input; None if not a number."""
+        try:
+            return float(self.section_line_gap_text.get().strip())
+        except ValueError:
+            return None
 
     def parse_thickness(self) -> Optional[float]:
         """Parse thickness from the text input; None means no filter."""
@@ -507,6 +561,8 @@ class PointSliceStudioGUI:
         xz_off = self.xz_rotated_x_offset.get()
         yz_off = self.yz_rotated_x_offset.get()
         thickness = self.parse_thickness()
+        section_lines = self.section_lines.get()
+        section_line_gap = self.parse_section_line_gap() or 1.0
 
         self._redirector = RedirectText(self.log_text)
         self._redirector.start_polling()
@@ -525,6 +581,8 @@ class PointSliceStudioGUI:
                 xz_off,
                 yz_off,
                 thickness,
+                section_lines,
+                section_line_gap,
             ),
             daemon=True,
         )
@@ -540,6 +598,8 @@ class PointSliceStudioGUI:
         xz_rotated_x_offset,
         yz_rotated_x_offset,
         thickness,
+        section_lines,
+        section_line_gap,
     ):
         """Run the actual processing in a background thread.
 
@@ -557,6 +617,8 @@ class PointSliceStudioGUI:
                 colors=colors,
                 label_position=label_position,
                 thickness=thickness,
+                section_lines=section_lines,
+                section_line_gap=section_line_gap,
             )
 
             if succeeded:

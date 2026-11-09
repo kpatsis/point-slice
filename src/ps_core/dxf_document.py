@@ -14,10 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import ezdxf
 from typing import Optional, List
-from ps_core.points_slice import PointsSlice
+from ps_core.points_slice import PointsSlice, SectionLine
 
 
 @dataclass
@@ -26,6 +26,13 @@ class Block:
     layer_name: Optional[str] = None
     block_name: Optional[str] = None
     insert_position: Optional[tuple[float, float, float]] = (0.0, 0.0, 0.0)
+    # Plan-view lines drawn alongside the points; a block that should show
+    # only lines is given a points_slice with an empty point list
+    section_lines: List[SectionLine] = field(default_factory=list)
+
+
+# Application id of the extended data that names the slice on each section line
+XDATA_APPID = "POINT_SLICE"
 
 
 class DXFDocument:
@@ -51,6 +58,9 @@ class DXFDocument:
         self.current_label_y = label_start_position[1]
         self.text_height = 0.5
         self.text_spacing = 0.7  # Space between labels
+        # CAD rejects extended data whose application id is not registered
+        if XDATA_APPID not in self.dxf_doc.appids:
+            self.dxf_doc.appids.new(XDATA_APPID)
 
     def add_block(self, block: Block):
         self.blocks.append(block)
@@ -69,8 +79,8 @@ class DXFDocument:
         Insert all blocks in the list into the DXF document.
         """
         for block in self.blocks:
-            # Validate that points_slice has points
-            if not block.points_slice.points:
+            # Skip blocks that would be empty
+            if not block.points_slice.points and not block.section_lines:
                 continue
 
             # Set default names if not provided
@@ -97,6 +107,24 @@ class DXFDocument:
                     round(point.z, 4),
                 )
                 dxf_block.add_point(location, dxfattribs={"layer": layer_name})
+
+            # Add the plan-view section lines, each tagged with the slice name
+            for index, line in enumerate(block.section_lines):
+                vertices = [
+                    (round(line.start.x, 4), round(line.start.y, 4)),
+                    (round(line.end.x, 4), round(line.end.y, 4)),
+                ]
+                polyline = dxf_block.add_lwpolyline(
+                    vertices,
+                    format="xy",
+                    dxfattribs={
+                        "layer": layer_name,
+                        "elevation": round(line.start.z, 4),
+                    },
+                )
+                polyline.set_xdata(
+                    XDATA_APPID, [(1000, block.points_slice.name), (1070, index)]
+                )
 
             # Insert the block into the modelspace
             modelspace = self.dxf_doc.modelspace()

@@ -48,6 +48,7 @@ Examples:
     python point_slice_studio_cli.py data/csv_files output.dxf         # Custom paths
     python point_slice_studio_cli.py /path/to/csv/files result.dxf     # Absolute paths
     python point_slice_studio_cli.py in/ out.dxf --anchor-x 10 --xz-rotated-x-offset -250
+    python point_slice_studio_cli.py in/ out.dxf --section-lines --section-line-gap 0.5
         """,
     )
 
@@ -137,10 +138,37 @@ Examples:
         ),
     )
 
+    parser.add_argument(
+        "--section-lines",
+        action="store_true",
+        help=(
+            "Experimental: in the main drawing, replace the point cloud of each"
+            " vertical (XZ/YZ) slice with its plan-view line at mid-height."
+            " Rotated blocks are unchanged. Default: off"
+        ),
+    )
+
+    parser.add_argument(
+        "--section-line-gap",
+        type=float,
+        default=1.0,
+        help=(
+            "Split a section line where consecutive points are farther apart"
+            " than this (drawing units). Default: 1.0"
+        ),
+    )
+
     args = parser.parse_args()
 
     if args.thickness is not None and args.thickness <= 0:
         print(f"❌ Error: Invalid thickness: {args.thickness}. Must be positive.")
+        return 1
+
+    if args.section_line_gap <= 0:
+        print(
+            f"❌ Error: Invalid section line gap: {args.section_line_gap}."
+            " Must be positive."
+        )
         return 1
 
     # Validate colors if provided
@@ -165,6 +193,8 @@ Examples:
         label_position=label_position,
         threshold=args.threshold,
         thickness=args.thickness,
+        section_lines=args.section_lines,
+        section_line_gap=args.section_line_gap,
     )
     return 0 if succeeded else 1
 
