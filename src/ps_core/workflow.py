@@ -31,7 +31,7 @@ from ps_core.points_slice import (
     SliceType,
     filter_slice_thickness,
     rotate_slice_to_xy,
-    section_lines as compute_section_lines,
+    compute_section_lines,
 )
 
 
@@ -157,9 +157,6 @@ def create_dxf_from_csv_directory(
                 f"➕ Added rotated block '{points_slice_rotated.name}' with {len(points_slice_rotated.points)} points ({points_slice_rotated.slice_type.value})"
             )
 
-        # The main block draws exactly what it is given: the points, or the
-        # section lines with an empty point list when they replace the points
-        block_slice = points_slice
         lines = []
         if section_lines and points_slice.slice_type in (SliceType.XZ, SliceType.YZ):
             try:
@@ -169,16 +166,17 @@ def create_dxf_from_csv_directory(
                     f"❌ Error computing section lines for '{points_slice.name}': {e}"
                 )
                 return False
-            if lines:
-                block_slice = replace(points_slice, points=[])
-                total_section_lines += len(lines)
-            else:
+            if not lines:
                 print(
                     f"⚠️  No section line for '{points_slice.name}' (every stretch is"
                     f" a single point or a gap over {section_line_gap}), keeping its"
                     f" {len(points_slice.points)} points"
                 )
+        total_section_lines += len(lines)
 
+        # The block draws exactly what it holds, so when section lines replace
+        # the points it gets a copy of the slice with an empty point list
+        block_slice = replace(points_slice, points=[]) if lines else points_slice
         block = Block(
             points_slice=block_slice,
             layer_name=layer_name,

@@ -169,7 +169,7 @@ class SectionLine:
     end: Point3D
 
 
-def section_lines(slice_obj: PointsSlice, max_gap: float) -> List[SectionLine]:
+def compute_section_lines(slice_obj: PointsSlice, max_gap: float) -> List[SectionLine]:
     """
     Reduce a vertical slice to the line(s) it projects onto in plan view.
 

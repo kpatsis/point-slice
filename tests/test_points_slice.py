@@ -15,7 +15,7 @@ from ps_core.points_slice import (
     SliceType,
     filter_slice_thickness,
     format_level,
-    section_lines,
+    compute_section_lines,
 )
 
 
@@ -105,7 +105,7 @@ class TestFilterSliceThickness(unittest.TestCase):
 
 
 class TestSectionLines(unittest.TestCase):
-    """Test the section_lines function."""
+    """Test the compute_section_lines function."""
 
     @staticmethod
     def xz_slice(x_values):
@@ -120,7 +120,7 @@ class TestSectionLines(unittest.TestCase):
         """A continuous XZ slice is one line at the Y and Z midpoints."""
         slice_obj = self.xz_slice([0.0, 0.5, 1.0, 1.5, 2.0])
 
-        lines = section_lines(slice_obj, 1.0)
+        lines = compute_section_lines(slice_obj, 1.0)
 
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0].start, Point3D(0.0, 5.0, 1.5))
@@ -130,8 +130,8 @@ class TestSectionLines(unittest.TestCase):
         """Stretches longer than max_gap break the line; shorter ones are bridged."""
         slice_obj = self.xz_slice([0.0, 0.5, 1.0, 3.0, 3.5, 4.0])
 
-        two = section_lines(slice_obj, 1.0)
-        one = section_lines(slice_obj, 2.5)
+        two = compute_section_lines(slice_obj, 1.0)
+        one = compute_section_lines(slice_obj, 2.5)
 
         self.assertEqual(
             [(line.start.x, line.end.x) for line in two], [(0.0, 1.0), (3.0, 4.0)]
@@ -146,7 +146,7 @@ class TestSectionLines(unittest.TestCase):
         ]
         slice_obj = PointsSlice(points=points, name="s", slice_type=SliceType.YZ)
 
-        lines = section_lines(slice_obj, 1.0)
+        lines = compute_section_lines(slice_obj, 1.0)
 
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0].start, Point3D(2.0, 0.0, 2.0))
@@ -156,7 +156,7 @@ class TestSectionLines(unittest.TestCase):
         """A stretch made of a single point has no length and is dropped."""
         slice_obj = self.xz_slice([0.0, 0.5, 1.0, 5.0])
 
-        lines = section_lines(slice_obj, 1.0)
+        lines = compute_section_lines(slice_obj, 1.0)
 
         self.assertEqual([(line.start.x, line.end.x) for line in lines], [(0.0, 1.0)])
 
@@ -166,25 +166,25 @@ class TestSectionLines(unittest.TestCase):
 
         for slice_type in (SliceType.XY, SliceType.UNKNOWN):
             slice_obj = PointsSlice(points=points, name="s", slice_type=slice_type)
-            self.assertEqual(section_lines(slice_obj, 1.0), [])
+            self.assertEqual(compute_section_lines(slice_obj, 1.0), [])
 
         empty = PointsSlice(points=[], name="s", slice_type=SliceType.XZ)
-        self.assertEqual(section_lines(empty, 1.0), [])
+        self.assertEqual(compute_section_lines(empty, 1.0), [])
 
     def test_non_positive_gap_raises(self):
         """Zero or negative gap is rejected."""
         slice_obj = self.xz_slice([0.0, 1.0])
 
         with self.assertRaises(ValueError):
-            section_lines(slice_obj, 0.0)
+            compute_section_lines(slice_obj, 0.0)
         with self.assertRaises(ValueError):
-            section_lines(slice_obj, -1.0)
+            compute_section_lines(slice_obj, -1.0)
 
     def test_point_order_does_not_matter(self):
         """Shuffling the input points gives the same lines."""
         x_values = [i * 0.1 for i in range(30)] + [5.0 + i * 0.1 for i in range(30)]
         slice_obj = self.xz_slice(x_values)
-        expected = section_lines(slice_obj, 1.0)
+        expected = compute_section_lines(slice_obj, 1.0)
 
         shuffled_points = list(slice_obj.points)
         random.Random(0).shuffle(shuffled_points)
@@ -192,7 +192,7 @@ class TestSectionLines(unittest.TestCase):
             points=shuffled_points, name="s", slice_type=SliceType.XZ
         )
 
-        self.assertEqual(section_lines(shuffled, 1.0), expected)
+        self.assertEqual(compute_section_lines(shuffled, 1.0), expected)
         self.assertEqual(len(expected), 2)
 
 
