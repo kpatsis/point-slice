@@ -26,9 +26,9 @@ class Block:
     layer_name: Optional[str] = None
     block_name: Optional[str] = None
     insert_position: Optional[tuple[float, float, float]] = (0.0, 0.0, 0.0)
-    # Plan-view lines drawn instead of (or as well as) the points
+    # Plan-view lines drawn alongside the points; a block that should show
+    # only lines is given a points_slice with an empty point list
     section_lines: List[SectionLine] = field(default_factory=list)
-    include_points: bool = True
 
 
 # Application id of the extended data that names the slice on each section line
@@ -100,14 +100,13 @@ class DXFDocument:
             )
 
             # Add all points to the block
-            if block.include_points:
-                for point in block.points_slice.points:
-                    location = (
-                        round(point.x, 4),
-                        round(point.y, 4),
-                        round(point.z, 4),
-                    )
-                    dxf_block.add_point(location, dxfattribs={"layer": layer_name})
+            for point in block.points_slice.points:
+                location = (
+                    round(point.x, 4),
+                    round(point.y, 4),
+                    round(point.z, 4),
+                )
+                dxf_block.add_point(location, dxfattribs={"layer": layer_name})
 
             # Add the plan-view section lines, each tagged with the slice name
             for index, line in enumerate(block.section_lines):

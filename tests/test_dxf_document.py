@@ -107,8 +107,7 @@ class TestDXFDocument(unittest.TestCase):
 
     def test_section_lines_replace_points(self):
         """A block with section lines and no points writes tagged LWPOLYLINEs."""
-        points = [Point3D(float(i), 5.0, float(i)) for i in range(4)]
-        points_slice = PointsSlice(points=points, name="wall", slice_type=SliceType.XZ)
+        points_slice = PointsSlice(points=[], name="wall", slice_type=SliceType.XZ)
         line = SectionLine(Point3D(0.0, 5.0, 1.5), Point3D(3.0, 5.0, 1.5))
         doc = DXFDocument()
         doc.add_block(
@@ -117,7 +116,6 @@ class TestDXFDocument(unittest.TestCase):
                 layer_name="L_wall",
                 block_name="Block_wall",
                 section_lines=[line],
-                include_points=False,
             )
         )
 
@@ -139,6 +137,21 @@ class TestDXFDocument(unittest.TestCase):
         )
         xdata = [(tag.code, tag.value) for tag in polyline.get_xdata(XDATA_APPID)]
         self.assertEqual(xdata, [(1000, "wall"), (1070, 0)])
+
+    def test_points_and_section_lines_are_both_drawn(self):
+        """A block draws whatever it holds: points and lines together."""
+        points = [Point3D(float(i), 5.0, float(i)) for i in range(4)]
+        points_slice = PointsSlice(points=points, name="wall", slice_type=SliceType.XZ)
+        line = SectionLine(Point3D(0.0, 5.0, 1.5), Point3D(3.0, 5.0, 1.5))
+        doc = DXFDocument()
+        doc.add_block(Block(points_slice=points_slice, section_lines=[line]))
+
+        doc.plot()
+        doc.save(self.output_file)
+
+        block = ezdxf.readfile(self.output_file).blocks.get("wall")
+        self.assertEqual(len(block.query("POINT")), 4)
+        self.assertEqual(len(block.query("LWPOLYLINE")), 1)
 
 
 if __name__ == "__main__":

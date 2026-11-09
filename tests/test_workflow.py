@@ -155,6 +155,23 @@ class TestCreateDxfFromCsvDirectory(unittest.TestCase):
         )
         self.assertEqual(labels, {"slice+1.00", "wall", "wall_rotated"})
 
+    def test_vertical_slice_without_lines_keeps_its_points(self):
+        """A vertical slice that yields no line falls back to points, with a warning."""
+        with open(os.path.join(self.input_dir, "posts.csv"), "w") as f:
+            for i in range(5):
+                f.write(f"{i * 3}.0 5.0 {i}.0\n")  # 3 units apart, gap is 1.0
+
+        result, output = self.run_workflow(
+            self.input_dir, self.output_file, section_lines=True
+        )
+
+        self.assertTrue(result)
+        self.assertIn("No section line for 'posts'", output)
+        self.assertIn("Added block 'posts' with 5 points", output)
+        self.assertEqual(self.count_entities("Block_posts", "LWPOLYLINE"), 0)
+        self.assertEqual(self.count_entities("Block_posts", "POINT"), 5)
+        self.assertEqual(self.count_entities("Block_posts_rotated", "POINT"), 5)
+
     def test_invalid_section_line_gap_returns_false(self):
         """A non-positive gap is reported and no file is written."""
         self.write_wall_csv()

@@ -22,6 +22,7 @@ Orchestrates parsing CSV point cloud files and writing them to a DXF document.
 
 import os
 import time
+from dataclasses import replace
 from typing import List, Optional
 
 from ps_core.dxf_document import DXFDocument, Block
@@ -156,8 +157,10 @@ def create_dxf_from_csv_directory(
                 f"➕ Added rotated block '{points_slice_rotated.name}' with {len(points_slice_rotated.points)} points ({points_slice_rotated.slice_type.value})"
             )
 
+        # The main block draws exactly what it is given: the points, or the
+        # section lines with an empty point list when they replace the points
+        block_slice = points_slice
         lines = []
-        include_points = True
         if section_lines and points_slice.slice_type in (SliceType.XZ, SliceType.YZ):
             try:
                 lines = compute_section_lines(points_slice, section_line_gap)
@@ -166,27 +169,33 @@ def create_dxf_from_csv_directory(
                     f"❌ Error computing section lines for '{points_slice.name}': {e}"
                 )
                 return False
-            include_points = False
-            total_section_lines += len(lines)
+            if lines:
+                block_slice = replace(points_slice, points=[])
+                total_section_lines += len(lines)
+            else:
+                print(
+                    f"⚠️  No section line for '{points_slice.name}' (every stretch is"
+                    f" a single point or a gap over {section_line_gap}), keeping its"
+                    f" {len(points_slice.points)} points"
+                )
 
         block = Block(
-            points_slice=points_slice,
+            points_slice=block_slice,
             layer_name=layer_name,
             block_name=f"Block_{points_slice.name}",
             insert_position=(0.0, 0.0, 0.0),
             section_lines=lines,
-            include_points=include_points,
         )
 
         doc.add_block(block)
-        if include_points:
-            print(
-                f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})"
-            )
-        else:
+        if lines:
             print(
                 f"➕ Added block '{points_slice.name}' with {len(lines)} section line(s)"
                 f" replacing {len(points_slice.points)} points ({points_slice.slice_type.value})"
+            )
+        else:
+            print(
+                f"➕ Added block '{points_slice.name}' with {len(points_slice.points)} points ({points_slice.slice_type.value})"
             )
 
     print(f"📦 Total blocks in document: {len(doc.blocks)}")
